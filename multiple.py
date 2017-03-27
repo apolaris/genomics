@@ -1,10 +1,14 @@
-def match (a, b)
+def match (a, b):
     global p
-    return (a==b)? 0:p
+    if a == b:
+        return 0
+
+    else
+        return -p
 
 
 
-def pariwise (a, b)
+def pariwise (a, b):
     global gap
     global mis
     alen = len(a)
@@ -33,7 +37,7 @@ def pariwise (a, b)
 
 
 
-def build_tree (deff, num)
+def build_tree (deff, num):
 #deff is the difference between the sequences
     score = [[0]*num]*num
     for i in range(0,num)
@@ -87,7 +91,7 @@ class sequences:
     def init_matrix (self):
         self.score = [[0]*self.num]*self.num
         for i in range(0,self.num):
-            node = [1,[],[],seqs[i],-1,-1,-1] #num, left, right, seqs, weight, difstance from parent, height
+            node = [1,[],[],seqs[i],-1,-1,-1] #num, left, right, seqs, weight, distance from parent, height
             self.score[i].append(node)
             for j in range(0,i):
                 self.score[i][j] = self.pairwise(i,j)
@@ -120,7 +124,7 @@ class sequences:
             K[i] = D1[i]
 
         for i in range(0,num2):
-            if k==2:
+            if key==2:
                 D2[0] = K[i+1]
                 I2[0] = K[i+1]
                 M2[0] = K[i+1]
@@ -128,6 +132,7 @@ class sequences:
                     D2[j] = min(D1[j-1], I1[j-1], M1[j-1]) + match(s1[j-1], s2[i-1])
                     I2[j] = min(I1[j]+a, M1[j]+b, D1[j]+b)
                     M2[j] = min(M2[j-1]+a, I2[j-1]+b, D2[j-1]+b)
+                key = 1
             else:
                 D1[0] = K[i+1]
                 I1[0] = K[i+1]
@@ -136,13 +141,14 @@ class sequences:
                     D1[j] = min(D2[j-1], I2[j-1], M2[j-1]) + match(s1[j-1], s2[i-1])
                     I1[j] = min(I2[j]+a, M2[j]+b, D2[j]+b)
                     M1[j] = min(M1[j-1]+a, I1[j-1]+b, D1[j-1]+b)
-        if (k==2):
+                key = 2
+        if (key==2):
             return min(M1[num1], D1[num1], I1[num1])
         else
             return min(M2[num1], D2[num1], I2[num1])
 
 
-    def buildtree (self)
+    def buildtree (self):
 
         num = self.num
         diff = self.score1
@@ -166,13 +172,13 @@ class sequences:
             node = [0,diff[i][num],diff[j][num],-1,-1,-1]
             diffk = []
             for i in range(0,num):
-                if(i!=di && i != dj):
+                if(i!=di and i != dj):
                     diffk.append((diff[di][i] + diff[dj][i]- diff[dj][di])/2)
             diffk.append(0)
             diffk.append(node)
 
             for i in range(0,num):
-                if(i!=di && i != dj):
+                if(i!=di and i != dj):
                     del diff[i][di]
                     del diff[i][dj]
 
@@ -186,12 +192,12 @@ class sequences:
         self.weighttree(diff[1],1)
         self.tree = diff[1]
         return diff[1]
-    def weighttree (self,t,h)
+    def weighttree (self,t,h):
         t[6] = h
-        if(!t[1]):
+        if(not t[1]):
             weighttree(t[1],h+1)
-        if(!t[2]):
-            weighttree(t[2],h+2)
+        if(not t[2]):
+            weighttree(t[2],h+1)
 
 
 #class tree:
