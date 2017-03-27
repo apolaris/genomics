@@ -87,8 +87,11 @@ class sequences:
     def init_matrix (self):
         self.score = [[0]*self.num]*self.num
         for i in range(0,self.num):
+            node = [1,[],[],seqs[i],-1,-1,-1] #num, left, right, seqs, weight, difstance from parent, height
+            self.score[i].append(node)
             for j in range(0,i):
                 self.score[i][j] = self.pairwise(i,j)
+                self.score[j][i] = self.score[i][j]
 
 
     #compare the two sequences
@@ -140,12 +143,55 @@ class sequences:
 
 
     def buildtree (self)
+
         num = self.num
-        diff = self.score
-        while(num>2)
+        diff = self.score1
+        d = 0
+        di = -1
+        dj = -1
+        nj = [[0]*num]*num
+        while(num>=2):
+            for i in range(0,num):
+                su[i] = sum(diff[i][:num])
+            for i in range(0,num):
+                for j in range(0,i):
+                    nj[i][j] = (su[i] + su[j]) - (num-2)*diff[i][j]
+                    if(nj[i][j] > d):
+                        d = nj[i][j]
+                        di = i
+                        dj = j
 
+            diff[i][num][3] = 0.5*diff[i][j]+(su[i] - su[j])/(2*(num-2))
+            diff[j][num][3] = diff[i][j] - diff[i][num][3]
+            node = [0,diff[i][num],diff[j][num],-1,-1,-1]
+            diffk = []
+            for i in range(0,num):
+                if(i!=di && i != dj):
+                    diffk.append((diff[di][i] + diff[dj][i]- diff[dj][di])/2)
+            diffk.append(0)
+            diffk.append(node)
 
+            for i in range(0,num):
+                if(i!=di && i != dj):
+                    del diff[i][di]
+                    del diff[i][dj]
 
+            del diff[di]
+            del diff[dj]
+            #now is num-1*num-1 matrix
+            for i in range(0,num-2):
+                diff[i].insert(num-2,diffk[i])
+            diff.insert(num-2, diffk)
+            num=num-1
+        self.weighttree(diff[1],1)
+        self.tree = diff[1]
+        return diff[1]
+    def weighttree (self,t,h)
+        t[6] = h
+        if(!t[1]):
+            weighttree(t[1],h+1)
+        if(!t[2]):
+            weighttree(t[2],h+2)
 
 
 #class tree:
