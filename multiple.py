@@ -91,7 +91,7 @@ class sequences:
     def init_matrix (self):
         self.score = [[0]*self.num]*self.num
         for i in range(0,self.num):
-            node = [1,[],[],seqs[i],-1,-1,-1] #num, left, right, seqs, weight, distance from parent, height
+            node = [1,[],[],[seqs[i]],[],-1,-1] #num, left, right, seqs, weight, distance from parent, height
             self.score[i].append(node)
             for j in range(0,i):
                 self.score[i][j] = self.pairwise(i,j)
@@ -113,10 +113,9 @@ class sequences:
         I2 = [0]*(num1+1)
         M1 = [0]*(num1+1)
         M2 = [0]*(num1+1)
-        K = [0]*(num1+1)
+        K = [0]*(num2+1)
         D1[1] = I1[1] = M1[1] = K[1] = b
         key = 2
-        D2[0] = b-a
         for i in range(2,num1+1):
             D1[i] = D1[i-1] + a
             I1[i] = D1[i]
@@ -169,7 +168,7 @@ class sequences:
 
             diff[i][num][3] = 0.5*diff[i][j]+(su[i] - su[j])/(2*(num-2))
             diff[j][num][3] = diff[i][j] - diff[i][num][3]
-            node = [0,diff[i][num],diff[j][num],-1,-1,-1]
+            node = [0,diff[i][num],diff[j][num],[],-1,-1]
             diffk = []
             for i in range(0,num):
                 if(i!=di and i != dj):
@@ -189,15 +188,26 @@ class sequences:
                 diff[i].insert(num-2,diffk[i])
             diff.insert(num-2, diffk)
             num=num-1
-        self.weighttree(diff[1],1)
+        self.weighttree(diff[1],1,[])
         self.tree = diff[1]
         return diff[1]
-    def weighttree (self,t,h):
+    def weighttree (self,t,h,dif):
         t[6] = h
-        if(not t[1]):
-            weighttree(t[1],h+1)
-        if(not t[2]):
-            weighttree(t[2],h+1)
+        if(not dif):
+            dif.append(0)
+        else:
+            dif.append(t[5])
+        if(t[1]):
+            weighttree(t[1],h+1,dif)
+        if(t[2]):
+            weighttree(t[2],h+1,dif)
+        if (not t[1]) and (not t[2]):
+            weight = 0
+            l = len(dif)
+            for i in range(1,l):
+                weight += dif[i]/(l-i)
+            t[3].append(weight)
+        dif.pop()
 
 
 #class tree:
