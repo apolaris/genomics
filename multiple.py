@@ -89,7 +89,9 @@ class sequences:
 
     #calculate the difference
     def init_matrix (self):
-        self.score = [[0]*self.num]*self.num
+        self.score = []
+        for i in range(0,self.num)
+        self.score.append([0]*self.num)
         for i in range(0,self.num):
             node = [1,[],[],[seqs[i]],[],-1,-1] #num, left, right, seqs, weight, distance from parent, height
             self.score[i].append(node)
@@ -154,7 +156,9 @@ class sequences:
         d = 0
         di = -1
         dj = -1
-        nj = [[0]*num]*num
+        nj = []
+        for i in range(0,num)
+            nj.append([0]*num)
         while(num>=2):
             for i in range(0,num):
                 su[i] = sum(diff[i][:num])
