@@ -159,8 +159,8 @@ class sequences:
         diff[dj][3][5]=(0.5*diff[di][dj])
         node = [0, diff[di][3], diff[dj][3], [],[], -1, -1, 0]
         dis = (diff[di][dk] + diff[dj][dk])/2
-        diff[dk][3][3]=(dis)
-        node[3]=(dis - 0.5*diff[di][dj])
+        diff[dk][3][5]=(dis)
+        node[5]=(dis - 0.5*diff[di][dj])
         t = [0,node,diff[dk][3],[],[],-1,-1,0]
 
 
@@ -210,18 +210,20 @@ class sequences:
         for seq in root[3]:
             print seq + '\n'
 
-    def dfs(node):
+    def dfs(self, node):
         if not node[1][3]:
             self.dfs(node[1])
-        if node[2][3]:
+        if not node[2][3]:
             self.dfs(node[2])
         seqs = self.multipairwise(node[1], node[2])
         node[3] = seqs
 
     # [num, left, right, seqs, weight, distance, height]
-    def multipairwise(node1, node2):
+    def multipairwise(self, node1, node2):
         a = self.a
         b = self.b
+        print "\n"
+        print node1[3]
         num1 = len(node1[3][0])
         num2 = len(node2[3][0])
         D1 = [0] * (num1 + 1)
@@ -233,30 +235,30 @@ class sequences:
         Path1_d = [[]]  # record the path
         Path1_i = [[]]
         Path1_m = [[]]
-        Path2_d = [[I]]
-        Path2_i = [[I]]
-        Path2_m = [[I]]
+        Path2_d = [['I']]
+        Path2_i = [['I']]
+        Path2_m = [['I']]
         Path_k = [[]]
         K = [0] * (num2 + 1)
         D1[1] = I1[1] = M1[1] = K[1] = b
-        Path1_d.append([D])
-        Path_k.append([I])
+        Path1_d.append(['D'])
+        Path_k.append(['I'])
         key = 2
         num_pair = len(node1[3]) * len(node2[3])
         for i in range(2, num1 + 1):
             D1[i] = D1[i - 1] + a
             I1[i] = D1[i]
             M1[i] = D1[i]
-            Path1_d.append([D] * i)
-            Path1_i.append([D] * i)
-            Path1_m.append([D] * i)
+            Path1_d.append(['D'] * i)
+            Path1_i.append(['D'] * i)
+            Path1_m.append(['D'] * i)
             Path2_d.append([])
             Path2_i.append([])
             Path2_m.append([])
 
         for i in range(2, num2 + 1):
             K[i] = K[i - 1] + a
-            Path_k.append([I] * i)
+            Path_k.append(['I'] * i)
 
         for i in range(0, num2):
             if key == 2:
@@ -275,23 +277,23 @@ class sequences:
                     min_i = min(I1[j] + a, M1[j] + b, D1[j] + b)
                     min_m = min(D1[j - 1], I1[j - 1], M1[j - 1])
                     if min_d == D2[j - 1] + a:
-                        Path2_d[j] = Path2_d[j - 1] + [D]
+                        Path2_d[j] = Path2_d[j - 1] + ['D']
                     elif min_d == I2[j - 1] + b:
-                        Path2_d[j] = Path2_i[j - 1] + [D]
+                        Path2_d[j] = Path2_i[j - 1] + ['D']
                     else:
-                        Path2_d[j] = Path2_m[j] + [D]
+                        Path2_d[j] = Path2_m[j] + ['D']
                     if min_i == I1[j] + a:
-                        Path2_i[j] = Path1_i[j] + [I]
+                        Path2_i[j] = Path1_i[j] + ['I']
                     elif min_i == D1[j] + b:
-                        Path2_i[j] = Path1_d[j] + [I]
+                        Path2_i[j] = Path1_d[j] + ['I']
                     else:
-                        Path2_i[j] = Path1_m[j] + [I]
+                        Path2_i[j] = Path1_m[j] + ['I']
                     if min_m == D1[j - 1]:
-                        Path2_m[j] = Path1_d[j - 1] + [M]
+                        Path2_m[j] = Path1_d[j - 1] + ['M']
                     elif min_m == I1[j - 1]:
-                        Path2_m[j] = Path1_i[j - 1] + [M]
+                        Path2_m[j] = Path1_i[j - 1] + ['M']
                     else:
-                        Path2_m[j] = Path1_m[j - 1] + [M]
+                        Path2_m[j] = Path1_m[j - 1] + ['M']
 
                     D2[j] = min_d
                     I2[j] = min_i
@@ -312,23 +314,23 @@ class sequences:
                     min_i = min(I2[j] + a, M2[j] + b, D2[j] + b)
                     min_m = min(D2[j - 1], I2[j - 1], M2[j - 1])
                     if min_d == D1[j - 1] + a:
-                        Path1_d[j] = Path1_d[j - 1] + [D]
+                        Path1_d[j] = Path1_d[j - 1] + ['D']
                     elif min_d == I1[j - 1] + b:
-                        Path1_d[j] = Path1_i[j - 1] + [D]
+                        Path1_d[j] = Path1_i[j - 1] + ['D']
                     else:
-                        Path1_d[j] = Path1_m[j] + [D]
+                        Path1_d[j] = Path1_m[j] + ['D']
                     if min_i == I2[j] + a:
-                        Path1_i[j] = Path2_i[j] + [I]
+                        Path1_i[j] = Path2_i[j] + ['I']
                     elif min_i == D2[j] + b:
-                        Path1_i[j] = Path2_d[j] + [I]
+                        Path1_i[j] = Path2_d[j] + ['I']
                     else:
-                        Path1_i[j] = Path2_m[j] + [I]
+                        Path1_i[j] = Path2_m[j] + ['I']
                     if min_m == D2[j - 1]:
-                        Path1_m[j] = Path2_d[j - 1] + [M]
+                        Path1_m[j] = Path2_d[j - 1] + ['M']
                     elif min_m == I2[j - 1]:
-                        Path1_m[j] = Path2_i[j - 1] + [M]
+                        Path1_m[j] = Path2_i[j - 1] + ['M']
                     else:
-                        Path1_m[j] = Path2_m[j - 1] + [M]
+                        Path1_m[j] = Path2_m[j - 1] + ['M']
 
                     D1[j] = min_d
                     I1[j] = min_i
