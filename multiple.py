@@ -1,4 +1,4 @@
-p = 1
+p = 1.0
 def match(a, b):
     global p
     if a == b:
@@ -10,9 +10,9 @@ def compare(a, b):
     if a == '-' or b == '-':
         return 0
     elif a == b:
-        return 2
+        return 1.0
     else:
-        return -3
+        return -2.0
 
 
 class sequences:
@@ -37,7 +37,8 @@ class sequences:
         print "the num of seqs is "
         print self.num
         for i in range(0, self.num):
-            self.score.append([0] * self.num)
+            self.score.append([0.0] * self.num)
+        maxx = 0.0
         for i in range(0, self.num):
             # num, left, right, seqs, weight, distance from parent, height,
             # size
@@ -46,6 +47,15 @@ class sequences:
             for j in range(0, i):
                 self.score[i][j] = self.pairwise(i, j)
                 self.score[j][i] = self.score[i][j]
+                if maxx < self.score[i][j]:
+                    maxx = self.score[i][j]
+        maxx = 2*maxx
+        for i in range ( 0, self.num):
+            for j in range(0,i):
+                self.score[i][j] /= maxx
+                self.score[j][i] /= maxx
+        for i in self.score:
+            print i[0:self.num]
 
     # compare the two sequences
     def pairwise(self, i, j):  # penalty for gap is a(k-1)+b
@@ -176,7 +186,7 @@ class sequences:
 
 
         self.sizeoftree(t)
-        self.weighttree(t, 1, -1)
+        self.weighttree(t, 1, -1.0)
         self.tree = t
         print "\n\n"
         #print t
@@ -200,7 +210,7 @@ class sequences:
 
     def weighttree(self, t, h, w):
         t[6] = h
-        if(w == -1):
+        if(w == -1.0):
             w = 0
         else:
             w += t[5]/t[7]
@@ -210,6 +220,7 @@ class sequences:
             self.weighttree(t[2], h + 1, w)
         if (not t[1]) and (not t[2]):
             t[4].append(w)
+            print t
 
     def complete(self):
         root = self.tree
@@ -270,12 +281,11 @@ class sequences:
                 I2[0] = K[i + 1]
                 M2[0] = K[i + 1]
                 Path2_m[0] = Path2_i[0] = Path2_d[0] = Path_k[i + 1]
-                score_d = 0
                 for j in range(1, num1 + 1):
+                    score_d = 0
                     for k1 in range(len(node1[3])):
                         for k2 in range(len(node2[3])):
                             score_d += compare(node1[3][k1][j - 1], node2[3][k2][i]) * node1[4][k1] * node2[4][k2]
-
                     max_d = max(D2[j - 1] + a, I2[j - 1] + b, M2[j - 1] + b)
                     max_i = max(I1[j] + a, M1[j] + b, D1[j] + b)
                     max_m = max(D1[j - 1], I1[j - 1], M1[j - 1])
@@ -308,6 +318,7 @@ class sequences:
                 M1[0] = K[i + 1]
                 Path1_m[0] = Path1_i[0] = Path1_d[0] = Path_k[i + 1]
                 for j in range(1, num1 + 1):
+                    score_d = 0
                     for k1 in range(len(node1[3])):
                         for k2 in range(len(node2[3])):
                             score_d += compare(node1[3][k1][j - 1], node2[3]
@@ -362,8 +373,9 @@ class sequences:
                 Path = Path1_d[num1]
             else:
                 Path = Path1_i[num1]
-        #print "path: "
-        #print Path
+        print "path: "
+        print max_score
+        print Path
         for c in Path:
             if c == 'M':
                 for i in range(seqnum1):
@@ -403,7 +415,7 @@ if __name__ == "__main__":
         seq.append(one)
     #print seq[0]
     fp.close()
-    mul = sequences(seq[0:6], 1, 3, 1)
+    mul = sequences(seq[0:6], 2.0, 3.0, 1.0)
     mul.init_matrix()
     #for i in mul.score:
         #print i[0:6]
