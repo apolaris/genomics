@@ -1,18 +1,18 @@
-p = 1.0
+p = 3.0
 def match(a, b):
     global p
     if a == b:
-        return 0
+        return -1.0
     else:
-        return p
+        return 2.0
 
 def compare(a, b):
     if a == '-' or b == '-':
         return 0
     elif a == b:
-        return 2.0
+        return 1.0
     else:
-        return -3.0
+        return -2.0
 
 
 class sequences:
@@ -34,15 +34,15 @@ class sequences:
     # calculate the difference
     def init_matrix(self):
         self.score = []
-        print "the num of seqs is "
-        print self.num
+        #print "the num of seqs is "
+        #print self.num
         for i in range(0, self.num):
             self.score.append([0.0] * self.num)
         maxx = 0.0
         for i in range(0, self.num):
             # num, left, right, seqs, weight, distance from parent, height,
             # size
-            node = [1, [], [], [self.seqs[i]], [], -1, -1, 0]
+            node = [[i], [], [], [self.seqs[i]], [], -1, -1, 0]
             self.score[i].append(node)
             for j in range(0, i):
                 self.score[i][j] = self.pairwise(i, j)
@@ -72,9 +72,23 @@ class sequences:
         I2 = [0] * (num1 + 1)
         M1 = [0] * (num1 + 1)
         M2 = [0] * (num1 + 1)
+        Dnum1 = [0.0] * (num1 + 1)
+        Dnum2 = [0.0] * (num1 + 1)
+        Inum1 = [0.0] * (num1 + 1)
+        Inum2 = [0.0] * (num1 + 1)
+        Mnum1 = [0.0] * (num1 + 1)
+        Mnum2 = [0.0] * (num1 + 1)
+        Dn1 = [0.0] * (num1 + 1)
+        Dn2 = [0.0] * (num1 + 1)
+        In1 = [0.0] * (num1 + 1)
+        In2 = [0.0] * (num1 + 1)
+        Mn1 = [0.0] * (num1 + 1)
+        Mn2 = [0.0] * (num1 + 1)
         K = [0] * (num2 + 1)
         D1[1] = I1[1] = M1[1] = K[1] = b
         key = 2
+        kkk = 0
+        lll = 0
         for i in range(2, num1 + 1):
             D1[i] = D1[i - 1] + a
             I1[i] = D1[i]
@@ -88,25 +102,117 @@ class sequences:
                 I2[0] = K[i + 1]
                 M2[0] = K[i + 1]
                 for j in range(1, num1 + 1):
-                    D2[j] = min(D1[j - 1], I1[j - 1], M1[j - 1]) + \
-                        match(s1[j - 1], s2[i - 1])
-                    I2[j] = min(I1[j] + a, M1[j] + b, D1[j] + b)
-                    M2[j] = min(M2[j - 1] + a, I2[j - 1] + b, D2[j - 1] + b)
+                    if(s1[j - 1]==s2[i]):
+                        kkk = -1.0
+                        lll = 1.0
+                    else:
+                        kkk = 2.0
+                        lll = 0
+                    if(D1[j-1] < I1[j-1] and D1[j-1] < M1[j - 1]):
+                        D2[j] = D1[j-1] + kkk
+                        Dnum2[j] = Dnum1[j-1] + lll
+                        Dn2[j] = Dn1[j-1] + 1.0
+                    elif (I1[j-1] < M1[j - 1]):
+                        D2[j] = I1[j-1] + kkk
+                        Dnum2[j] = Inum1[j-1] + lll
+                        Dn2[j] = In1[j-1] + 1.0
+                    else:
+                        D2[j] = M1[j-1] + kkk
+                        Dnum2[j] = Mnum1[j-1] + lll
+                        Dn2[j] = Mn1[j-1] + 1.0
+                    #########
+                    if(I1[j] + a < M1[j] + b and I1[j] + a < D1[j] + b ):
+                        I2[j] = I1[j] + a
+                        Inum2[j] = Inum1[j]
+                        In2[j] = In1[j] + 1.0
+                    elif(M1[j]  < D1[j]  ):
+                        I2[j] = M1[j] + b
+                        Inum2[j] = Mnum1[j]
+                        In2[j] = Mn1[j] + 1.0
+                    else:
+                        I2[j] = D1[j] + b
+                        Inum2[j] = Dnum1[j]
+                        In2[j] = Dn1[j] + 1.0
+                    ##########
+                    if(M2[j - 1] + a < I2[j - 1] + b and M2[j - 1] + a < D2[j - 1] + b):
+                        M2[j] = M2[j - 1] + a
+                        Mnum2[j] = Mnum2[j-1]
+                        Mn2[j] = Mn2[j-1] + 1.0
+                    if(I2[j - 1] < D2[j - 1] ):
+                        M2[j] = I2[j - 1] + a
+                        Mnum2[j] = Inum2[j-1]
+                        Mn2[j] = In2[j-1] + 1.0
+                    else:
+                        M2[j] = D2[j - 1] + a
+                        Mnum2[j] = Dnum2[j-1]
+                        Mn2[j] = Dn2[j-1] + 1.0
                 key = 1
             else:
                 D1[0] = K[i + 1]
                 I1[0] = K[i + 1]
                 M1[0] = K[i + 1]
                 for j in range(1, num1 + 1):
-                    D1[j] = min(D2[j - 1], I2[j - 1], M2[j - 1]) + \
-                        match(s1[j - 1], s2[i - 1])
-                    I1[j] = min(I2[j] + a, M2[j] + b, D2[j] + b)
-                    M1[j] = min(M1[j - 1] + a, I1[j - 1] + b, D1[j - 1] + b)
+                    if(s1[j - 1]==s2[i]):
+                        kkk = -1.0
+                        lll = 1.0
+                    else:
+                        kkk = 2.0
+                        lll = 0
+                    if(D2[j-1] < I2[j-1] and D2[j-1] < M2[j - 1]):
+                        D1[j] = D2[j-1] + kkk
+                        Dnum1[j] = Dnum2[j-1] + lll
+                        Dn1[j] = Dn2[j-1] + 1.0
+                    elif (I2[j-1] < M2[j - 1]):
+                        D1[j] = I2[j-1] + kkk
+                        Dnum1[j] = Inum2[j-1] + lll
+                        Dn1[j] = In2[j-1] + 1.0
+                    else:
+                        D1[j] = M2[j-1] + kkk
+                        Dnum1[j] = Mnum2[j-1] + lll
+                        Dn1[j] = Mn2[j-1] + 1.0
+                    #########
+                    if(I2[j] + a < M2[j] + b and I2[j] + a < D2[j] + b ):
+                        I1[j] = I2[j] + a
+                        Inum1[j] = Inum2[j]
+                        In1[j] = In2[j] + 1.0
+                    elif(M2[j]  < D2[j]  ):
+                        I1[j] = M2[j] + b
+                        Inum1[j] = Mnum2[j]
+                        In1[j] = Mn2[j] + 1.0
+                    else:
+                        I1[j] = D2[j] + b
+                        Inum1[j] = Dnum2[j]
+                        In1[j] = Dn2[j] + 1.0
+                    ##########
+                    if(M1[j - 1] + a < I1[j - 1] + b and M1[j - 1] + a < D1[j - 1] + b):
+                        M1[j] = M1[j - 1] + a
+                        Mnum1[j] = Mnum1[j-1]
+                        Mn1[j] = Mn1[j-1] + 1.0
+                    if(I1[j - 1] < D1[j - 1] ):
+                        M1[j] = I1[j - 1] + a
+                        Mnum1[j] = Inum1[j-1]
+                        Mn1[j] = In1[j-1] + 1.0
+                    else:
+                        M1[j] = D1[j - 1] + a
+                        Mnum1[j] = Dnum1[j-1]
+                        Mn1[j] = Dn1[j-1] + 1.0
                 key = 2
         if (key == 2):
-            return min(M1[num1], D1[num1], I1[num1])
+            M2[num1] = M1[num1]
+            D2[num1] = D1[num1]
+            I2[num1] = I1[num1]
+            Mnum2[num1] = Mnum1[num1]
+            Dnum2[num1] = Dnum1[num1]
+            Inum2[num1] = Inum1[num1]
+            Mn2[num1] = Mn1[num1]
+            Dn2[num1] = Dn1[num1]
+            In2[num1] = In1[num1]
+        if(M2[num1] < D2[num1] and M2[num1] < I2[num2])
+            return Mnum2/Mn2
+        elif(D2[num1] < I2[num2]):
+            return Dnum2/Dn2
         else:
-            return min(M2[num1], D2[num1], I2[num1])
+            return Inum2/In2
 
     def buildtree(self):
 
@@ -135,7 +241,7 @@ class sequences:
 
             diff[di][num][5] = 0.5 * diff[di][dj] + (su[di] - su[dj]) / (2 * (num -2))
             diff[dj][num][5] = diff[di][dj] - diff[di][num][5]
-            node = [0, diff[di][num], diff[dj][num], [], [], -1, -1, 0]
+            node = [[], diff[di][num], diff[dj][num], [], [], -1, -1, 0]
             diffk = []
 
             for i in range(0, num):
@@ -174,11 +280,11 @@ class sequences:
             dk = 0
         diff[di][3][5]=(0.5*diff[di][dj])
         diff[dj][3][5]=(0.5*diff[di][dj])
-        node = [0, diff[di][3], diff[dj][3], [],[], -1, -1, 0]
+        node = [[], diff[di][3], diff[dj][3], [],[], -1, -1, 0]
         dis = (diff[di][dk] + diff[dj][dk])/2
         diff[dk][3][5]=(dis)
         node[5]=(dis - 0.5*diff[di][dj])
-        t = [0,node,diff[dk][3],[],[],-1,-1,0]
+        t = [[],node,diff[dk][3],[],[],-1,-1,0]
 
 
 
@@ -260,6 +366,13 @@ class sequences:
         D1[1] = I1[1] = M1[1] = K[1] = b
         key = 2
         num_pair = len(node1[3]) * len(node2[3])
+        weight_sum = 0.0
+        print node1[4]
+        print node2[4]
+        for k1 in range(len(node1[3])):
+            for k2 in range(len(node2[3])):
+                weight_sum += node1[4][k1] * node2[4][k2]
+        weight_sum /= num_pair
         for i in range(1, num1 + 1):
             D1[i] = D1[i - 1] + a
             I1[i] = D1[i]
@@ -281,24 +394,23 @@ class sequences:
                 I2[0] = K[i + 1]
                 M2[0] = K[i + 1]
                 Path2_m[0] = Path2_i[0] = Path2_d[0] = Path_k[i + 1]
-                score_d = 0
                 for j in range(1, num1 + 1):
+                    score_d = 0
                     for k1 in range(len(node1[3])):
                         for k2 in range(len(node2[3])):
                             score_d += compare(node1[3][k1][j - 1], node2[3][k2][i]) * node1[4][k1] * node2[4][k2]
-
-                    max_d = max(D2[j - 1] + a, I2[j - 1] + b, M2[j - 1] + b)
-                    max_i = max(I1[j] + a, M1[j] + b, D1[j] + b)
+                    max_d = max(D2[j - 1] + weight_sum * a, I2[j - 1] + weight_sum * b, M2[j - 1] + weight_sum * b)
+                    max_i = max(I1[j] + weight_sum * a, M1[j] + weight_sum * b, D1[j] + weight_sum * b)
                     max_m = max(D1[j - 1], I1[j - 1], M1[j - 1])
-                    if max_d == D2[j - 1] + a:
+                    if max_d == D2[j - 1] + weight_sum * a:
                         Path2_d[j] = Path2_d[j - 1] + ['D']
-                    elif max_d == I2[j - 1] + b:
+                    elif max_d == I2[j - 1] + weight_sum * b:
                         Path2_d[j] = Path2_i[j - 1] + ['D']
                     else:
                         Path2_d[j] = Path2_m[j - 1] + ['D']
-                    if max_i == I1[j] + a:
+                    if max_i == I1[j] + weight_sum * a:
                         Path2_i[j] = Path1_i[j] + ['I']
-                    elif max_i == D1[j] + b:
+                    elif max_i == D1[j] + weight_sum *b:
                         Path2_i[j] = Path1_d[j] + ['I']
                     else:
                         Path2_i[j] = Path1_m[j] + ['I']
@@ -319,23 +431,24 @@ class sequences:
                 M1[0] = K[i + 1]
                 Path1_m[0] = Path1_i[0] = Path1_d[0] = Path_k[i + 1]
                 for j in range(1, num1 + 1):
+                    score_d = 0
                     for k1 in range(len(node1[3])):
                         for k2 in range(len(node2[3])):
                             score_d += compare(node1[3][k1][j - 1], node2[3]
                                              [k2][i]) * node1[4][k1] * node2[4][k2]
 
-                    max_d = max(D1[j - 1] + a, I1[j - 1] + b, M1[j - 1] + b)
-                    max_i = max(I2[j] + a, M2[j] + b, D2[j] + b)
+                    max_d = max(D1[j - 1] + weight_sum * a, I1[j - 1] + weight_sum * b, M1[j - 1] + weight_sum * b)
+                    max_i = max(I2[j] + weight_sum * a, M2[j] + weight_sum * b, D2[j] + weight_sum * b)
                     max_m = max(D2[j - 1], I2[j - 1], M2[j - 1])
-                    if max_d == D1[j - 1] + a:
+                    if max_d == D1[j - 1] + weight_sum * a:
                         Path1_d[j] = Path1_d[j - 1] + ['D']
-                    elif max_d == I1[j - 1] + b:
+                    elif max_d == I1[j - 1] + weight_sum * b:
                         Path1_d[j] = Path1_i[j - 1] + ['D']
                     else:
                         Path1_d[j] = Path1_m[j - 1] + ['D']
-                    if max_i == I2[j] + a:
+                    if max_i == I2[j] + weight_sum * a:
                         Path1_i[j] = Path2_i[j] + ['I']
-                    elif max_i == D2[j] + b:
+                    elif max_i == D2[j] + weight_sum * b:
                         Path1_i[j] = Path2_d[j] + ['I']
                     else:
                         Path1_i[j] = Path2_m[j] + ['I']
@@ -368,13 +481,14 @@ class sequences:
         else:
             max_score = max(M2[num1], D2[num1], I2[num1])
             if M2[num1] == max_score:
-                Path = Path1_m[num1]
+                Path = Path2_m[num1]
             elif D2[num1] == max_score:
-                Path = Path1_d[num1]
+                Path = Path2_d[num1]
             else:
-                Path = Path1_i[num1]
-        print "path: "
-        print Path
+                Path = Path2_i[num1]
+        #print "path: "
+        #print max_score
+        #print Path
         for c in Path:
             if c == 'M':
                 for i in range(seqnum1):
@@ -396,6 +510,14 @@ class sequences:
                     points[i]+=1
                 for i in range(seqnum2):
                     aligned[seqnum1 + i].append('-')
+        for i in range(seqnum1):
+            if points[i] != num1:
+                print points[i], num1
+                quit()
+        for i in range(seqnum2):
+            if points[seqnum1 + i] != num2:
+                print points[seqnum1 + i], num2
+                quit()
         return aligned
 
 # class tree:
@@ -414,7 +536,7 @@ if __name__ == "__main__":
         seq.append(one)
     #print seq[0]
     fp.close()
-    mul = sequences(seq[0:6], 1.0, 3.0, 1.0)
+    mul = sequences(seq[0:6], 2.0, 3.0, 1.0)
     mul.init_matrix()
     #for i in mul.score:
         #print i[0:6]
