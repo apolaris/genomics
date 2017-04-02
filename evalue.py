@@ -30,8 +30,7 @@ def sc(seq1,seq2):
         elif(s1[i] == '-'):
             if(s1[i-1] == '-'):
                 score += 2
-            else:
-                score += 3
+            else:                score += 3
         elif(s2[i] == '-'):
             if(s2[i-1] == '-'):
                 score += 2
@@ -80,4 +79,3 @@ if __name__ == "__main__":
     evalue(seq[12:18])
 
     evalue(seq[18:24])
-
