@@ -34,8 +34,8 @@ class sequences:
     # calculate the difference
     def init_matrix(self):
         self.score = []
-        print "the num of seqs is "
-        print self.num
+        #print "the num of seqs is "
+        #print self.num
         for i in range(0, self.num):
             self.score.append([0.0] * self.num)
         maxx = 0.0
@@ -89,7 +89,7 @@ class sequences:
                 M2[0] = K[i + 1]
                 for j in range(1, num1 + 1):
                     D2[j] = min(D1[j - 1], I1[j - 1], M1[j - 1]) + \
-                        match(s1[j - 1], s2[i - 1])
+                        match(s1[j - 1], s2[i])
                     I2[j] = min(I1[j] + a, M1[j] + b, D1[j] + b)
                     M2[j] = min(M2[j - 1] + a, I2[j - 1] + b, D2[j - 1] + b)
                 key = 1
@@ -99,7 +99,7 @@ class sequences:
                 M1[0] = K[i + 1]
                 for j in range(1, num1 + 1):
                     D1[j] = min(D2[j - 1], I2[j - 1], M2[j - 1]) + \
-                        match(s1[j - 1], s2[i - 1])
+                        match(s1[j - 1], s2[i])
                     I1[j] = min(I2[j] + a, M2[j] + b, D2[j] + b)
                     M1[j] = min(M1[j - 1] + a, I1[j - 1] + b, D1[j - 1] + b)
                 key = 2
@@ -260,6 +260,13 @@ class sequences:
         D1[1] = I1[1] = M1[1] = K[1] = b
         key = 2
         num_pair = len(node1[3]) * len(node2[3])
+        weight_sum = 0.0
+        print node1[4]
+        print node2[4]
+        for k1 in range(len(node1[3])):
+            for k2 in range(len(node2[3])):
+                weight_sum += node1[4][k1] * node2[4][k2]
+        weight_sum /= num_pair
         for i in range(1, num1 + 1):
             D1[i] = D1[i - 1] + a
             I1[i] = D1[i]
@@ -286,18 +293,18 @@ class sequences:
                     for k1 in range(len(node1[3])):
                         for k2 in range(len(node2[3])):
                             score_d += compare(node1[3][k1][j - 1], node2[3][k2][i]) * node1[4][k1] * node2[4][k2]
-                    max_d = max(D2[j - 1] + a, I2[j - 1] + b, M2[j - 1] + b)
-                    max_i = max(I1[j] + a, M1[j] + b, D1[j] + b)
+                    max_d = max(D2[j - 1] + weight_sum * a, I2[j - 1] + weight_sum * b, M2[j - 1] + weight_sum * b)
+                    max_i = max(I1[j] + weight_sum * a, M1[j] + weight_sum * b, D1[j] + weight_sum * b)
                     max_m = max(D1[j - 1], I1[j - 1], M1[j - 1])
-                    if max_d == D2[j - 1] + a:
+                    if max_d == D2[j - 1] + weight_sum * a:
                         Path2_d[j] = Path2_d[j - 1] + ['D']
-                    elif max_d == I2[j - 1] + b:
+                    elif max_d == I2[j - 1] + weight_sum * b:
                         Path2_d[j] = Path2_i[j - 1] + ['D']
                     else:
                         Path2_d[j] = Path2_m[j - 1] + ['D']
-                    if max_i == I1[j] + a:
+                    if max_i == I1[j] + weight_sum * a:
                         Path2_i[j] = Path1_i[j] + ['I']
-                    elif max_i == D1[j] + b:
+                    elif max_i == D1[j] + weight_sum *b:
                         Path2_i[j] = Path1_d[j] + ['I']
                     else:
                         Path2_i[j] = Path1_m[j] + ['I']
@@ -324,18 +331,18 @@ class sequences:
                             score_d += compare(node1[3][k1][j - 1], node2[3]
                                              [k2][i]) * node1[4][k1] * node2[4][k2]
 
-                    max_d = max(D1[j - 1] + a, I1[j - 1] + b, M1[j - 1] + b)
-                    max_i = max(I2[j] + a, M2[j] + b, D2[j] + b)
+                    max_d = max(D1[j - 1] + weight_sum * a, I1[j - 1] + weight_sum * b, M1[j - 1] + weight_sum * b)
+                    max_i = max(I2[j] + weight_sum * a, M2[j] + weight_sum * b, D2[j] + weight_sum * b)
                     max_m = max(D2[j - 1], I2[j - 1], M2[j - 1])
-                    if max_d == D1[j - 1] + a:
+                    if max_d == D1[j - 1] + weight_sum * a:
                         Path1_d[j] = Path1_d[j - 1] + ['D']
-                    elif max_d == I1[j - 1] + b:
+                    elif max_d == I1[j - 1] + weight_sum * b:
                         Path1_d[j] = Path1_i[j - 1] + ['D']
                     else:
                         Path1_d[j] = Path1_m[j - 1] + ['D']
-                    if max_i == I2[j] + a:
+                    if max_i == I2[j] + weight_sum * a:
                         Path1_i[j] = Path2_i[j] + ['I']
-                    elif max_i == D2[j] + b:
+                    elif max_i == D2[j] + weight_sum * b:
                         Path1_i[j] = Path2_d[j] + ['I']
                     else:
                         Path1_i[j] = Path2_m[j] + ['I']
@@ -368,14 +375,14 @@ class sequences:
         else:
             max_score = max(M2[num1], D2[num1], I2[num1])
             if M2[num1] == max_score:
-                Path = Path1_m[num1]
+                Path = Path2_m[num1]
             elif D2[num1] == max_score:
-                Path = Path1_d[num1]
+                Path = Path2_d[num1]
             else:
-                Path = Path1_i[num1]
-        print "path: "
-        print max_score
-        print Path
+                Path = Path2_i[num1]
+        #print "path: "
+        #print max_score
+        #print Path
         for c in Path:
             if c == 'M':
                 for i in range(seqnum1):
@@ -397,6 +404,14 @@ class sequences:
                     points[i]+=1
                 for i in range(seqnum2):
                     aligned[seqnum1 + i].append('-')
+        for i in range(seqnum1):
+            if points[i] != num1:
+                print points[i], num1
+                quit()
+        for i in range(seqnum2):
+            if points[seqnum1 + i] != num2:
+                print points[seqnum1 + i], num2
+                quit()
         return aligned
 
 # class tree:
