@@ -38,7 +38,6 @@ class sequences:
         #print self.num
         for i in range(0, self.num):
             self.score.append([0.0] * self.num)
-        maxx = 0.0
         for i in range(0, self.num):
             # num, left, right, seqs, weight, distance from parent, height,
             # size
@@ -47,13 +46,6 @@ class sequences:
             for j in range(0, i):
                 self.score[i][j] = self.pairwise(i, j)
                 self.score[j][i] = self.score[i][j]
-                if maxx < self.score[i][j]:
-                    maxx = self.score[i][j]
-        maxx = 2*maxx
-        for i in range ( 0, self.num):
-            for j in range(0,i):
-                self.score[i][j] /= maxx
-                self.score[j][i] /= maxx
         for i in self.score:
             print i[0:self.num]
 
@@ -207,12 +199,12 @@ class sequences:
             Mn2[num1] = Mn1[num1]
             Dn2[num1] = Dn1[num1]
             In2[num1] = In1[num1]
-        if(M2[num1] < D2[num1] and M2[num1] < I2[num2])
-            return Mnum2/Mn2
-        elif(D2[num1] < I2[num2]):
-            return Dnum2/Dn2
+        if(M2[num1] < D2[num1] and M2[num1] < I2[num1]):
+            return 1 - Mnum2[num1]/Mn2[num1]
+        elif(D2[num1] < I2[num1]):
+            return 1 - Dnum2[num1]/Dn2[num1]
         else:
-            return Inum2/In2
+            return 1 - Inum2[num1]/In2[num1]
 
     def buildtree(self):
 
@@ -264,17 +256,15 @@ class sequences:
                 diff[i].insert(num - 2, diffk[i])
             diff.insert(num - 2, diffk)
             num = num - 1
-        if(diff[0][1] < diff[0][2]):
-            if(diff[0][1] < diff[1][2]):
-                di = 0
-                dj = 1
-                dk = 2
+        if(diff[0][1] < diff[0][2] and diff[0][1] < diff[1][2]):
+            di = 0
+            dj = 1
+            dk = 2
+        elif(diff[0][2] < diff[1][2]):
+            di = 0
+            dj = 2
+            dk = 1
         else:
-            if(diff[0][2] < diff[1][2]):
-                di = 0
-                dj = 2
-                dk = 1
-        if(diff[1][2]<diff[0][2] and diff[1][2]<diff[0][1]):
             di = 1
             dj = 2
             dk = 0
@@ -536,7 +526,7 @@ if __name__ == "__main__":
         seq.append(one)
     #print seq[0]
     fp.close()
-    mul = sequences(seq[0:6], 2.0, 3.0, 1.0)
+    mul = sequences([seq[0:6], 2.0, 3.0, 1.0)
     mul.init_matrix()
     #for i in mul.score:
         #print i[0:6]
