@@ -1,3 +1,5 @@
+import time
+
 p = 3.0
 def match(a, b):
     global p
@@ -43,12 +45,11 @@ class sequences:
             self.ext.append(tmplist)
 
         for i in range(self.num):
-            # num, left, right, seqs, size, distance
-            node = [[i], [], [], [self.seqs[i]], 0, -1]
+            # num, left, right, seqs, size, distance, realindex
+            node = [[i], [], [], [self.seqs[i]], 0, -1,[range(len(self.seqs[i]))]]
             self.score[i].append(node)
             for j in range(i):
                 align = self.pairwise(i, j)
-                #print align
                 align2 =[align[1], align[0]]
                 leng = len(align[0])
                 matc = 0.0
@@ -93,17 +94,14 @@ class sequences:
                     numis = -1
                     numjs = -1
                     min_ext = min(self.ext[i][s][0], self.ext[j][s][0])
-                    #print ois[0]
-                    #print ois[1]
+                    lens = len(self.seqs[s])-1
                     while(1):
                         while(1):
                             numis+=1
-
                             if(ois[0][numis] !='-'):
                                 numisi += 1
                             if(ois[1][numis] !='-'):
                                 numiss += 1
-                                #print numis,' ',numiss
                                 break
                         while(1):
                             numjs+=1
@@ -123,7 +121,7 @@ class sequences:
                                 self.ext[i][j][3][numjsj][numisi] += min_ext
                             else:
                                 self.ext[i][j][3][numjsj][numisi] = min_ext
-                        if(numjss >= len(self.seqs[s])):
+                        if(numiss >= lens):
                             break
         for i in range(self.num):
             for j in range(i):
@@ -133,8 +131,6 @@ class sequences:
                 self.ext[j][i].pop(0)
                 self.ext[j][i].append(self.ext[i][j][1])
                 self.ext[j][i].append(self.ext[i][j][0])
-        for i in self.score:
-            print i[0:self.num]
 
     # compare the two sequences
     def pairwise(self, i, j):
@@ -305,13 +301,11 @@ class sequences:
 
             diff[di][num][5] = 0.5 * diff[di][dj] + (su[di] - su[dj]) / (2 * (num -2))
             diff[dj][num][5] = diff[di][dj] - diff[di][num][5]
-            node = [[], diff[di][num], diff[dj][num], [], 0, -1]
+            node = [[], diff[di][num], diff[dj][num], [], 0, -1, []]
             diffk = []
 
             for i in range(0, num):
                 if(i != di and i != dj):
-                    #print diffk,i,di,dj,diff[di][i],diff[dj][i],diff[dj][di]
-
                     diffk.append((diff[di][i] + diff[dj][i] - diff[dj][di]) / 2)
             diffk.append(0)
             diffk.append(node)
@@ -342,15 +336,13 @@ class sequences:
             dk = 0
         diff[di][3][5]=(0.5*diff[di][dj])
         diff[dj][3][5]=(0.5*diff[di][dj])
-        node = [[], diff[di][3], diff[dj][3], [], 0, -1]
+        node = [[], diff[di][3], diff[dj][3], [], 0, -1, []]
         dis = (diff[di][dk] + diff[dj][dk])/2
         diff[dk][3][5]=(dis)
         node[5]=(dis - 0.5*diff[di][dj])
         t = [[],node,diff[dk][3],[],[],-1,-1,0]
 
         self.tree = t
-        print "\n\n"
-        #print t
         return t
 
 
@@ -365,8 +357,8 @@ class sequences:
             self.dfs(node[1])
         if not node[2][3]:
             self.dfs(node[2])
-        seqs = self.multipairwise(node[1], node[2])
-        node[3] = seqs
+        node[3], node[6] = self.multipairwise(node[1], node[2])
+        node[0] = node[1][0] + node[2][0]
         node[4] = node[1][4] + node[2][4]
 
     # [num, left, right, seqs, weight, distance, height]
@@ -418,8 +410,8 @@ class sequences:
                     score_d = 0.0
                     for k1 in range(len(node1[3])):
                         for k2 in range(len(node2[3])):
-                            extlist = Ext[node1[0][k1]][node2[0][k2]]
-                            score_d += showExt(extlist, i, j - 1)
+                            extlist = Ext[node1[0][k1]][node2[0][k2]][0]
+                            score_d += self.showExt(extlist, node1[6][k1][j - 1], node2[6][k2][i])
                     max_d = max(D2[j - 1], I2[j - 1], M2[j - 1])
                     max_i = max(I1[j], M1[j], D1[j])
                     max_m = max(D1[j - 1], I1[j - 1], M1[j - 1])
@@ -455,8 +447,8 @@ class sequences:
                     score_d = 0.0
                     for k1 in range(len(node1[3])):
                         for k2 in range(len(node2[3])):
-                            extlist = Ext[node1[0][k1]][node2[0][k2]]
-                            score_d += showExt(extlist, i, j - 1)
+                            extlist = Ext[node1[0][k1]][node2[0][k2]][0]
+                            score_d += self.showExt(extlist, node1[6][k1][j - 1], node2[6][k2][i])
                     max_d = max(D1[j - 1], I1[j - 1], M1[j - 1])
                     max_i = max(I2[j], M2[j], D2[j])
                     max_m = max(D2[j - 1], I2[j - 1], M2[j - 1])
@@ -485,11 +477,13 @@ class sequences:
                     key = 2
         '''need to refine the sequence'''
         aligned = []
+        realIndex = []
         seqnum1 = len(node1[3])
         seqnum2 = len(node2[3])
         points = [0] * (seqnum1 + seqnum2)
         for i in range(seqnum1 + seqnum2):
             aligned.append([])
+            realIndex.append([])
         if key == 2:
             max_score = max(M1[num1], D1[num1], I1[num1])
             if M1[num1] == max_score:
@@ -510,30 +504,38 @@ class sequences:
             if c == 'M':
                 for i in range(seqnum1):
                     aligned[i].append(node1[3][i][points[i]])
+                    realIndex[i].append(node1[6][i][points[i]])
                     points[i]+=1
                 for i in range(seqnum2):
                     aligned[seqnum1 + i].append(node2[3][i][points[seqnum1 + i]])
+                    realIndex[seqnum1 + i].append(node2[6][i][points[seqnum1 + i]])
                     points[seqnum1 + i]+=1
             elif c == 'I':
                 for i in range(seqnum1):
                     aligned[i].append('-')
+                    realIndex[i].append(-1)
                 for i in range(seqnum2):
                     aligned[seqnum1 + i].append(node2[3][i][points[seqnum1 + i]])
+                    realIndex[seqnum1 + i].append(node2[6][i][points[seqnum1 + i]])
                     points[seqnum1 + i]+=1
             else:
-                #print points
                 for i in range(seqnum1):
                     aligned[i].append(node1[3][i][points[i]])
+                    realIndex[i].append(node1[6][i][points[i]])
                     points[i]+=1
                 for i in range(seqnum2):
                     aligned[seqnum1 + i].append('-')
-        return aligned
-    def showExt (extlist, i, j):
-        dic = extlist[i]
-        if dic.has_key(i):
-            return dic[i]
-        else:
+                    realIndex[seqnum1 + i].append(-1)
+        return aligned, realIndex
+    def showExt (self, extlist, i, j):
+        if i == -1:
             return 0
+        else:
+            dic = extlist[i]
+            if dic.has_key(j):
+                return dic[j]
+            else:
+                return 0
 
 # class tree:
 if __name__ == "__main__":
@@ -549,11 +551,16 @@ if __name__ == "__main__":
                 one.append(i)
         one.pop()
         seq.append(one)
-    #print seq[0]
     fp.close()
-    mul = sequences(seq[0:6], 2.0, 3.0, 1.0)
+    mul = sequences(seq, 2.0, 3.0, 1.0)
+    t1 = time.clock()
     mul.init_matrix()
-    #for i in mul.score:
-        #print i[0:6]
+
+    t2 = time.clock()
     mul.buildtree()
+
+    t3 = time.clock()
     mul.complete()
+    t4 = time.clock()
+
+    print "%f, %f, %f" % (t2-t1, t3-t2, t4-t3)
