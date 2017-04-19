@@ -16,7 +16,9 @@ char ran(char a, int k, int b)
     {
         if(i<20)
             return 'A' + i;
-        if(i == 20)
+        if(i<40)
+            return 'A' + i -20;
+        if(i < 42)
             return '_';
         return a;
     }
