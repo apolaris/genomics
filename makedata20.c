@@ -38,23 +38,9 @@ int main()
     for(i = 0; i < LEN; i++)
     {
         srand((unsigned)time(NULL)+i);
-        key = rand()%4;
+        key = rand()%20;
         //printf("%d", key);
-        switch(key)
-        {
-        case 0:
-            seq[i] = 'A';
-            break;
-        case 1:
-            seq[i] = 'C';
-            break;
-        case 2:
-            seq[i] = 'T';
-            break;
-        case 3:
-            seq[i] = 'G';
-            break;
-        }
+        seq[i] = 'A' + key;
         fprintf(f,"%c", seq[i]);
     }
     fclose(f);
