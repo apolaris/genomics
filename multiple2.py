@@ -53,7 +53,8 @@ class sequences:
             node = [[i], [], [], [self.seqs[i]], 0, -1,[range(len(self.seqs[i]))]]
             self.score[i].append(node)
             for j in range(i):
-                align = self.pairwise(i, j)
+                print i,j
+                align = self.pairwise2(i, j)
                 align2 =[align[1], align[0]]
                 leng = len(align[0])
                 matc = 0.0
@@ -89,6 +90,7 @@ class sequences:
                 for s in range(self.num):
                     if(s == i or s == j):
                         continue
+                    print i,j,1
                     ois = self.ext[i][s][1]
                     ojs = self.ext[j][s][1]
                     numiss = -1
@@ -328,6 +330,9 @@ class sequences:
         self.dfs(root)
         print root[0]
         #print self.evalue(root[3])
+        f = open("version2.0.txt", "w")
+        for seq in root[3]:
+            print >>f, seq
 
 
     def dfs(self, node):
@@ -335,7 +340,7 @@ class sequences:
             self.dfs(node[1])
         if not node[2][3]:
             self.dfs(node[2])
-        node[3], node[6] = self.multipairwise(node[1], node[2])
+        node[3], node[6] = self.multipairwise2(node[1], node[2])
         node[0] = node[1][0] + node[2][0]
         node[4] = node[1][4] + node[2][4]
 
@@ -376,7 +381,7 @@ class sequences:
                         extlist = Ext[node1[0][k1]][node2[0][k2]][0]
                         score_d += self.showExt(extlist, node1[6][k1][j - 1], node2[6][k2][i - 1])
                 if M[i-1][j-1] > D[i-1][j-1]:
-                    if I[i-1][j-1] >= M[i-1][j-1]:
+                    if I[i-1][j-1] > M[i-1][j-1]:
                         M[i][j] = I[i-1][j-1] + score_d
                         Mp[i][j] = 1
                     else:
@@ -389,26 +394,26 @@ class sequences:
                         M[i][j] = D[i-1][j-1] + score_d
                         Mp[i][j] = -1
                 if M[i][j-1] > D[i][j-1]:
-                    if I[i][j-1] >= M[i][j-1]:
+                    if I[i][j-1] > M[i][j-1]:
                         I[i][j] = I[i][j-1]
                         Ip[i][j] = 1
                     else:
                         I[i][j] =  M[i][j-1]
                 else:
-                    if I[i][j-1] >= D[i][j-1]:
+                    if I[i][j-1] > D[i][j-1]:
                         I[i][j] = I[i][j-1]
                         Ip[i][j] = 1
                     else:
                         I[i][j] = D[i][j-1]
                         Ip[i][j] = -1
                 if M[i-1][j] > I[i-1][j] :
-                    if D[i-1][j] >= M[i-1][j] :
+                    if D[i-1][j] > M[i-1][j] :
                         D[i][j] = D[i-1][j]
                         Dp[i][j] = -1
                     else:
                         D[i][j] = M[i-1][j]
                 else:
-                    if D[i-1][j] >= I[i-1][j]:
+                    if D[i-1][j] > I[i-1][j]:
                         D[i][j] = D[i-1][j]
                         Dp[i][j] = -1
                     else:
@@ -424,7 +429,7 @@ class sequences:
                 key = 1
             else:
                 key = -1
-        #need to refine the sequence
+        '''need to refine the sequence'''
         aligned = []
         realIndex = []
         seqnum1 = len(node1[3])
@@ -565,7 +570,7 @@ class sequences:
         #print score,"\n\n"
         return summ
 
-    def refine(self, times):
+    def refine(self):
         # num, left, right, seqs, size, distance, realindex
         root = self.tree
         self.sortdistance(root)
@@ -573,7 +578,7 @@ class sequences:
             print self.distance[i][0], self.distance[i][5]
         max_score = self.evalue(root[3])
         print max_score
-        for i in range(times):
+        for i in range(5):
             node1 = self.distance[i]
             node2 = [[], [], [], [], -1, -1, []]
             for j in range(len(root[0])):
@@ -601,10 +606,287 @@ class sequences:
                     del root[3][i][index]
             else:
                 index += 1
-        f = open("424tcoffee.txt", "w")
         for seq in root[3]:
-            print >>f, seq
+            print seq
 
+
+    def pairwise2(self, i, j):
+        s1 = self.seqs[i]
+        s2 = self.seqs[j]
+        len1 = len(s1)
+        len2 = len(s2)
+        M = []
+        D = []
+        I = []
+        Mp = []
+        Dp = []
+        Ip = []
+        a = self.a
+        b = self.b
+        for i in range(len2+1):
+            M.append([100000000]*(len1+1))
+            D.append([100000000]*(len1+1))
+            I.append([100000000]*(len1+1))
+            Mp.append([0]*(len1+1))
+            Dp.append([0]*(len1+1))
+            Ip.append([0]*(len1+1))
+        M[0][0] = D[0][0] = I[0][0] = 0
+        M[1][0] = D[1][0] = I[1][0] = 3
+        M[0][1] = D[0][1] = I[0][1] = 3
+        Mp[1][0] = Dp[1][0] = Ip[1][0] = 1 # 1 is vertical
+        Mp[0][1] = Dp[0][1] = Ip[0][1] = -1 # -1 is horizontal
+        for i in range(2,len2+1):
+            M[i][0] = D[i][0] = I[i][0] = I[i-1][0] + 2
+            Mp[i][0] = Dp[i][0] = Ip[i][0] = 1
+        for i in range(2,len1+1):
+            M[0][i] = D[0][i] = I[0][i] = I[0][i-1] + 2
+            Mp[0][i] = Dp[0][i] = Ip[0][i] = -1
+        quart = len1/8
+        begin = 0
+        end = 0
+        for i in range(1,len2+1):
+            begin = i - quart
+            end = i + quart
+            if(begin <= 0):
+                begin = 1
+            if(end > len1):
+                end = len1+1
+            for j in range(begin,end):
+                if(M[i-1][j-1] <= D[i-1][j-1]):
+                    if(I[i-1][j-1] < M[i-1][j-1]):
+                        M[i][j] = I[i-1][j-1] + match(s1[j-1], s2[i-1])
+                        Mp[i][j] = 1
+                    else:
+                        M[i][j] = M[i-1][j-1] + match(s1[j-1], s2[i-1])
+                else:
+                    if(I[i-1][j-1] < D[i-1][j-1]):
+                        M[i][j] = I[i-1][j-1] + match(s1[j-1], s2[i-1])
+                        Mp[i][j] = 1
+                    else:
+                        M[i][j] = D[i-1][j-1] + match(s1[j-1], s2[i-1])
+                        Mp[i][j] = -1
+                if(M[i][j-1] <= D[i][j-1]):
+                    if(I[i][j-1] + a < M[i][j-1] + b):
+                        I[i][j] = I[i][j-1] + a
+                        Ip[i][j] = 1
+                    else:
+                        I[i][j] =  M[i][j-1] + b
+                else:
+                    if(I[i][j-1] + a < D[i][j-1] + b):
+                        I[i][j] = I[i][j-1] + a
+                        Ip[i][j] = 1
+                    else:
+                        I[i][j] = D[i][j-1] + b
+                        Ip[i][j] = -1
+                if(M[i-1][j] <= I[i-1][j]):
+                    if(D[i-1][j] + a < M[i-1][j] + b):
+                        D[i][j] = D[i-1][j] + a
+                        Dp[i][j] = -1
+                    else:
+                        D[i][j] = M[i-1][j] + b
+                else:
+                    if(D[i-1][j] + a < I[i-1][j] + b):
+                        D[i][j] = D[i-1][j] + a
+                        Dp[i][j] = -1
+                    else:
+                        D[i][j] = I[i-1][j] + b
+                        Dp[i][j] = 1
+        i = len2
+        j = len1
+        if(M[len2][len1] < I[len2][len1]):
+            if(M[len2][len1] < D[len2][len1]):
+                key = 0
+            else:
+                key = -1
+        else:
+            if(I[len2][len1] < D[len2][len1]):
+                key = 1
+            else:
+                key = -1
+        align = [[],[]]
+        while(i != 0 and j != 0):
+            if(key == 0):
+                key = Mp[i][j]
+                i-=1
+                j-=1
+                align[0].append(s1[j])
+                align[1].append(s2[i])
+            elif(key == 1 ):
+                key = Ip[i][j]
+                j-=1
+                align[0].append(s1[j])
+                align[1].append('-')
+            else:
+                key = Dp[i][j]
+                i-=1
+                align[0].append('-')
+                align[1].append(s2[i])
+        while(i!=0):
+            i-=1
+            align[0].append('-')
+            align[1].append(s2[i])
+        while(j!=0):
+            j-=1
+            align[0].append(s1[j])
+            align[1].append('-')
+        align[0] = align[0][::-1]
+        align[1] = align[1][::-1]
+        return align
+
+    def multipairwise2(self, node1, node2):
+        a = 0.0
+        b = 0.0
+        Ext = self.ext
+        len1 = len(node1[3][0])
+        len2 = len(node2[3][0])
+        num_pair = len(node1[3]) * len(node2[3])
+        M = []
+        D = []
+        I = []
+        Mp = []
+        Dp = []
+        Ip = []
+        for i in range(len2+1):
+            M.append([-1]*(len1+1))
+            D.append([-1]*(len1+1))
+            I.append([-1]*(len1+1))
+            Mp.append([0]*(len1+1))
+            Dp.append([0]*(len1+1))
+            Ip.append([0]*(len1+1))
+
+        for i in range(1,len2+1):
+            M[i][0] = D[i][0] = I[i][0] = 0
+            Mp[i][0] = Dp[i][0] = Ip[i][0] = 1 # 1 is vertical
+        for i in range(1,len1+1):
+            M[0][i] = D[0][i] = I[0][i] = 0
+            Mp[0][i] = Dp[0][i] = Ip[0][i] = -1 # -1 is horizontal
+        begin = 0
+        end = 1
+        quart = len1/4
+        for i in range(1, len2 + 1):
+            begin = i - quart
+            end = i + quart
+            if(begin <= 0):
+                begin = 1
+            if(end > len1):
+                end = len1+1
+            for j in range(begin, end):
+                score_d = 0.0
+                for k1 in range(len(node1[3])):
+                    for k2 in range(len(node2[3])):
+                        extlist = Ext[node1[0][k1]][node2[0][k2]][0]
+                        score_d += self.showExt(extlist, node1[6][k1][j - 1], node2[6][k2][i - 1])
+                if M[i-1][j-1] > D[i-1][j-1]:
+                    if I[i-1][j-1] > M[i-1][j-1]:
+                        M[i][j] = I[i-1][j-1] + score_d
+                        Mp[i][j] = 1
+                    else:
+                        M[i][j] = M[i-1][j-1] + score_d
+                else:
+                    if I[i-1][j-1] > D[i-1][j-1]:
+                        M[i][j] = I[i-1][j-1] + score_d
+                        Mp[i][j] = 1
+                    else:
+                        M[i][j] = D[i-1][j-1] + score_d
+                        Mp[i][j] = -1
+                if M[i][j-1] > D[i][j-1]:
+                    if I[i][j-1] > M[i][j-1]:
+                        I[i][j] = I[i][j-1]
+                        Ip[i][j] = 1
+                    else:
+                        I[i][j] =  M[i][j-1]
+                else:
+                    if I[i][j-1] > D[i][j-1]:
+                        I[i][j] = I[i][j-1]
+                        Ip[i][j] = 1
+                    else:
+                        I[i][j] = D[i][j-1]
+                        Ip[i][j] = -1
+                if M[i-1][j] > I[i-1][j] :
+                    if D[i-1][j] > M[i-1][j] :
+                        D[i][j] = D[i-1][j]
+                        Dp[i][j] = -1
+                    else:
+                        D[i][j] = M[i-1][j]
+                else:
+                    if D[i-1][j] > I[i-1][j]:
+                        D[i][j] = D[i-1][j]
+                        Dp[i][j] = -1
+                    else:
+                        D[i][j] = I[i-1][j]
+                        Dp[i][j] = 1
+        if M[len2][len1] > I[len2][len1]:
+            if M[len2][len1] > D[len2][len1]:
+                key = 0
+            else:
+                key = -1
+        else:
+            if I[len2][len1] > D[len2][len1]:
+                key = 1
+            else:
+                key = -1
+        '''need to refine the sequence'''
+        aligned = []
+        realIndex = []
+        seqnum1 = len(node1[3])
+        seqnum2 = len(node2[3])
+        for i in range(seqnum1 + seqnum2):
+            aligned.append([])
+            realIndex.append([])
+        i = len2
+        j = len1
+        while i != 0 and j != 0:
+            if key == 0:
+                key = Mp[i][j]
+                i -= 1
+                j -= 1
+                for k in range(seqnum1):
+                    aligned[k].append(node1[3][k][j])
+                    realIndex[k].append(node1[6][k][j])
+                for k in range(seqnum2):
+                    aligned[seqnum1 + k].append(node2[3][k][i])
+                    realIndex[seqnum1 + k].append(node2[6][k][i])
+            elif key == 1:
+                key = Ip[i][j]
+                j -= 1
+                for k in range(seqnum1):
+                    aligned[k].append(node1[3][k][j])
+                    realIndex[k].append(node1[6][k][j])
+                for k in range(seqnum2):
+                    aligned[seqnum1 + k].append('-')
+                    realIndex[seqnum1 + k].append(-1)
+            else:
+                key = Dp[i][j]
+                i -= 1
+                for k in range(seqnum1):
+                    aligned[k].append('-')
+                    realIndex[k].append(-1)
+                for k in range(seqnum2):
+                    aligned[seqnum1 + k].append(node2[3][k][i])
+                    realIndex[seqnum1 + k].append(node2[6][k][i])
+        while i != 0:
+            i -= 1
+            for k in range(seqnum1):
+                aligned[k].append('-')
+                realIndex[k].append(-1)
+            for k in range(seqnum2):
+                aligned[seqnum1 + k].append(node2[3][k][i])
+                realIndex[seqnum1 + k].append(node2[6][k][i])
+        while j != 0:
+            j -= 1
+            for k in range(seqnum1):
+                aligned[k].append(node1[3][k][j])
+                realIndex[k].append(node1[6][k][j])
+            for k in range(seqnum2):
+                aligned[seqnum1 + k].append('-')
+                realIndex[seqnum1 + k].append(-1)
+        for i in range(seqnum1):
+            aligned[i] = aligned[i][::-1]
+            realIndex[i] = realIndex[i][::-1]
+        for i in range(seqnum2):
+            aligned[seqnum1 + i] = aligned[seqnum1 + i][::-1]
+            realIndex[seqnum1 + i] = realIndex[seqnum1 + i][::-1]
+        return aligned, realIndex
 # class tree:
 if __name__ == "__main__":
     fp = open("datatree.txt","r")
@@ -620,7 +902,7 @@ if __name__ == "__main__":
         one.pop()
         seq.append(one)
     fp.close()
-    mul = sequences(seq[0:20], 2.0, 3.0, 1.0)
+    mul = sequences(seq, 2.0, 3.0, 1.0)
     t1 = time.clock()
     print "begin init"
     mul.init_matrix()
@@ -634,7 +916,8 @@ if __name__ == "__main__":
     mul.complete()
 
     t4 = time.clock()
-    mul.refine(10)
+    print "begin refine"
+    mul.refine()
     t5 = time.clock()
 
     print "%f, %f, %f, %f" % (t2-t1, t3-t2, t4-t3, t5-t4)
