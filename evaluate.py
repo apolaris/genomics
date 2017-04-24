@@ -9,7 +9,7 @@ def do(seq):
     score = 0.0
     full = 0.0
     count = 0
-    order = [24, 12, 18, 6, 27, 9, 17, 26, 13, 4, 29, 3, 1, 5, 28, 19, 22, 11, 23, 15, 10, 16, 8, 25, 20, 2, 7, 0, 21, 14]
+    order = [13, 10, 16, 25, 24, 28, 12, 27, 6, 20, 21, 0, 26, 2, 8, 18, 3, 1, 7, 23, 5, 11, 19, 9, 17, 14, 4, 22, 15]
     for i in range(len(seq)):
         for j in range(i + 1, len(seq)):
             for k in range(len(seq[0])):
@@ -34,7 +34,7 @@ def do(seq):
     print score
 
 
-fp = open("419a.txt","r")
+fp = open("419b.txt","r")
 fp2 = open("data20.txt","r")
 seqa = []
 seqb = []

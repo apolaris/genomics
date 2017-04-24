@@ -29,14 +29,18 @@ class sequences:
 
     # do all
     def all(self):
+        print "begin init"
         self.init_matrix()
+        print "begin build"
         self.build()
+
         self.complete()
 
     # calculate the difference
     def init_matrix(self):
         self.score = []
         self.ext = []
+        self.distance = []
         for i in range(0, self.num):
             self.score.append([0.0] * self.num)
             tmplist = []
@@ -134,145 +138,118 @@ class sequences:
 
     # compare the two sequences
     def pairwise(self, i, j):
-        a = -self.a
-        b = -self.b
         s1 = self.seqs[i]
         s2 = self.seqs[j]
-        num1 = len(s1)
-        num2 = len(s2)
-        D1 = [0] * (num1 + 1)
-        D2 = [0] * (num1 + 1)
-        I1 = [0] * (num1 + 1)
-        I2 = [0] * (num1 + 1)
-        M1 = [0] * (num1 + 1)
-        M2 = [0] * (num1 + 1)
-        Path1_d = [[]]  # record the path
-        Path1_i = [[]]
-        Path1_m = [[]]
-        Path2_d = [['I']]
-        Path2_i = [['I']]
-        Path2_m = [['I']]
-        Path_k = [[]]
-        K = [0] * (num2 + 1)
-        D1[1] = I1[1] = M1[1] = K[1] = b
-        key = 2
-        for i in range(1, num1 + 1):
-            D1[i] = D1[i - 1] + a
-            I1[i] = D1[i]
-            M1[i] = D1[i]
-            Path1_d.append(['D'] * i)
-            Path1_i.append(['D'] * i)
-            Path1_m.append(['D'] * i)
-            Path2_d.append([])
-            Path2_i.append([])
-            Path2_m.append([])
-
-        for i in range(1, num2 + 1):
-            K[i] = K[i - 1] + a
-            Path_k.append(['I'] * i)
-
-        for i in range(0, num2):
-            if key == 2:
-                D2[0] = K[i + 1]
-                I2[0] = K[i + 1]
-                M2[0] = K[i + 1]
-                Path2_m[0] = Path2_i[0] = Path2_d[0] = Path_k[i + 1]
-                for j in range(1, num1 + 1):
-                    score_d = compare(s1[j - 1], s2[i])
-                    max_d = max(D2[j - 1] + a, I2[j - 1] + b, M2[j - 1] + b)
-                    max_i = max(I1[j] + a, M1[j] + b, D1[j] + b)
-                    max_m = max(D1[j - 1], I1[j - 1], M1[j - 1])
-                    if max_d == D2[j - 1] + a:
-                        Path2_d[j] = Path2_d[j - 1] + ['D']
-                    elif max_d == I2[j - 1] + b:
-                        Path2_d[j] = Path2_i[j - 1] + ['D']
+        len1 = len(s1)
+        len2 = len(s2)
+        M = []
+        D = []
+        I = []
+        Mp = []
+        Dp = []
+        Ip = []
+        a = self.a
+        b = self.b
+        for i in range(len2+1):
+            M.append([0]*(len1+1))
+            D.append([0]*(len1+1))
+            I.append([0]*(len1+1))
+            Mp.append([0]*(len1+1))
+            Dp.append([0]*(len1+1))
+            Ip.append([0]*(len1+1))
+        M[0][0] = D[0][0] = I[0][0] = 0
+        M[1][0] = D[1][0] = I[1][0] = 3
+        M[0][1] = D[0][1] = I[0][1] = 3
+        Mp[1][0] = Dp[1][0] = Ip[1][0] = 1 # 1 is vertical
+        Mp[0][1] = Dp[0][1] = Ip[0][1] = -1 # -1 is horizontal
+        for i in range(2,len2+1):
+            M[i][0] = D[i][0] = I[i][0] = I[i-1][0] + 2
+            Mp[i][0] = Dp[i][0] = Ip[i][0] = 1
+        for i in range(2,len1+1):
+            M[0][i] = D[0][i] = I[0][i] = I[0][i-1] + 2
+            Mp[0][i] = Dp[0][i] = Ip[0][i] = -1
+        for i in range(1,len2+1):
+            for j in range(1,len1+1):
+                if(M[i-1][j-1] <= D[i-1][j-1]):
+                    if(I[i-1][j-1] < M[i-1][j-1]):
+                        M[i][j] = I[i-1][j-1] + match(s1[j-1], s2[i-1])
+                        Mp[i][j] = 1
                     else:
-                        Path2_d[j] = Path2_m[j - 1] + ['D']
-                    if max_i == I1[j] + a:
-                        Path2_i[j] = Path1_i[j] + ['I']
-                    elif max_i == D1[j] + b:
-                        Path2_i[j] = Path1_d[j] + ['I']
+                        M[i][j] = M[i-1][j-1] + match(s1[j-1], s2[i-1])
+                else:
+                    if(I[i-1][j-1] < D[i-1][j-1]):
+                        M[i][j] = I[i-1][j-1] + match(s1[j-1], s2[i-1])
+                        Mp[i][j] = 1
                     else:
-                        Path2_i[j] = Path1_m[j] + ['I']
-                    if max_m == D1[j - 1]:
-                        Path2_m[j] = Path1_d[j - 1] + ['M']
-                    elif max_m == I1[j - 1]:
-                        Path2_m[j] = Path1_i[j - 1] + ['M']
+                        M[i][j] = D[i-1][j-1] + match(s1[j-1], s2[i-1])
+                        Mp[i][j] = -1
+                if(M[i][j-1] <= D[i][j-1]):
+                    if(I[i][j-1] + a < M[i][j-1] + b):
+                        I[i][j] = I[i][j-1] + a
+                        Ip[i][j] = 1
                     else:
-                        Path2_m[j] = Path1_m[j - 1] + ['M']
-
-                    D2[j] = max_d
-                    I2[j] = max_i
-                    M2[j] = max_m + score_d
+                        I[i][j] =  M[i][j-1] + b
+                else:
+                    if(I[i][j-1] + a < D[i][j-1] + b):
+                        I[i][j] = I[i][j-1] + a
+                        Ip[i][j] = 1
+                    else:
+                        I[i][j] = D[i][j-1] + b
+                        Ip[i][j] = -1
+                if(M[i-1][j] <= I[i-1][j]):
+                    if(D[i-1][j] + a < M[i-1][j] + b):
+                        D[i][j] = D[i-1][j] + a
+                        Dp[i][j] = -1
+                    else:
+                        D[i][j] = M[i-1][j] + b
+                else:
+                    if(D[i-1][j] + a < I[i-1][j] + b):
+                        D[i][j] = D[i-1][j] + a
+                        Dp[i][j] = -1
+                    else:
+                        D[i][j] = I[i-1][j] + b
+                        Dp[i][j] = 1
+        i = len2
+        j = len1
+        if(M[len2][len1] < I[len2][len1]):
+            if(M[len2][len1] < D[len2][len1]):
+                key = 0
+            else:
+                key = -1
+        else:
+            if(I[len2][len1] < D[len2][len1]):
                 key = 1
             else:
-                D1[0] = K[i + 1]
-                I1[0] = K[i + 1]
-                M1[0] = K[i + 1]
-                Path1_m[0] = Path1_i[0] = Path1_d[0] = Path_k[i + 1]
-                for j in range(1, num1 + 1):
-                    score_d = compare(s1[j - 1], s2[i])
-                    max_d = max(D1[j - 1] + a, I1[j - 1] + b, M1[j - 1] + b)
-                    max_i = max(I2[j] + a, M2[j] + b, D2[j] + b)
-                    max_m = max(D2[j - 1], I2[j - 1], M2[j - 1])
-                    if max_d == D1[j - 1] + a:
-                        Path1_d[j] = Path1_d[j - 1] + ['D']
-                    elif max_d == I1[j - 1] + b:
-                        Path1_d[j] = Path1_i[j - 1] + ['D']
-                    else:
-                        Path1_d[j] = Path1_m[j - 1] + ['D']
-                    if max_i == I2[j] + a:
-                        Path1_i[j] = Path2_i[j] + ['I']
-                    elif max_i == D2[j] + b:
-                        Path1_i[j] = Path2_d[j] + ['I']
-                    else:
-                        Path1_i[j] = Path2_m[j] + ['I']
-                    if max_m == D2[j - 1]:
-                        Path1_m[j] = Path2_d[j - 1] + ['M']
-                    elif max_m == I2[j - 1]:
-                        Path1_m[j] = Path2_i[j - 1] + ['M']
-                    else:
-                        Path1_m[j] = Path2_m[j - 1] + ['M']
-
-                    D1[j] = max_d
-                    I1[j] = max_i
-                    M1[j] = max_m + score_d
-                key = 2
-        Path = []
-        aligned = [[],[]]
-        points = [0,0]
-        if key == 2:
-            max_score = max(M1[num1], D1[num1], I1[num1])
-            if M1[num1] == max_score:
-                Path = Path1_m[num1]
-            elif D1[num1] == max_score:
-                Path = Path1_d[num1]
+                key = -1
+        align = [[],[]]
+        while(i != 0 and j != 0):
+            if(key == 0):
+                key = Mp[i][j]
+                i-=1
+                j-=1
+                align[0].append(s1[j])
+                align[1].append(s2[i])
+            elif(key == 1 ):
+                key = Ip[i][j]
+                j-=1
+                align[0].append(s1[j])
+                align[1].append('-')
             else:
-                Path = Path1_i[num1]
-        else:
-            max_score = max(M2[num1], D2[num1], I2[num1])
-            if M2[num1] == max_score:
-                Path = Path2_m[num1]
-            elif D2[num1] == max_score:
-                Path = Path2_d[num1]
-            else:
-                Path = Path2_i[num1]
-        for c in Path:
-            if c == 'M':
-                aligned[0].append(s1[points[0]])
-                aligned[1].append(s2[points[1]])
-                points[0] += 1
-                points[1] += 1
-            elif c == 'I':
-                aligned[0].append('-')
-                aligned[1].append(s2[points[1]])
-                points[1] += 1
-            else:
-                aligned[1].append('-')
-                aligned[0].append(s1[points[0]])
-                points[0] += 1
-
-        return aligned
+                key = Dp[i][j]
+                i-=1
+                align[0].append('-')
+                align[1].append(s2[i])
+        while(i!=0):
+            i-=1
+            align[0].append('-')
+            align[1].append(s2[i])
+        while(j!=0):
+            j-=1
+            align[0].append(s1[j])
+            align[1].append('-')
+        align[0] = align[0][::-1]
+        align[1] = align[1][::-1]
+        return align
 
     def buildtree(self):
 
@@ -349,8 +326,9 @@ class sequences:
     def complete(self):
         root = self.tree
         self.dfs(root)
-        for seq in root[3]:
-            print seq
+        print root[0]
+        #print self.evalue(root[3])
+
 
     def dfs(self, node):
         if not node[1][3]:
@@ -366,167 +344,149 @@ class sequences:
         a = 0.0
         b = 0.0
         Ext = self.ext
-        num1 = len(node1[3][0])
-        num2 = len(node2[3][0])
+        len1 = len(node1[3][0])
+        len2 = len(node2[3][0])
         num_pair = len(node1[3]) * len(node2[3])
-        D1 = [0] * (num1 + 1)
-        D2 = [0] * (num1 + 1)
-        I1 = [0] * (num1 + 1)
-        I2 = [0] * (num1 + 1)
-        M1 = [0] * (num1 + 1)
-        M2 = [0] * (num1 + 1)
-        Path1_d = [[]]  # record the path
-        Path1_i = [[]]
-        Path1_m = [[]]
-        Path2_d = [['I']]
-        Path2_i = [['I']]
-        Path2_m = [['I']]
-        Path_k = [[]]
-        K = [0] * (num2 + 1)
-        D1[1] = I1[1] = M1[1] = K[1] = b
-        key = 2
-        for i in range(1, num1 + 1):
-            D1[i] = D1[i - 1] + a
-            I1[i] = D1[i]
-            M1[i] = D1[i]
-            Path1_d.append(['D'] * i)
-            Path1_i.append(['D'] * i)
-            Path1_m.append(['D'] * i)
-            Path2_d.append([])
-            Path2_i.append([])
-            Path2_m.append([])
+        M = []
+        D = []
+        I = []
+        Mp = []
+        Dp = []
+        Ip = []
+        for i in range(len2+1):
+            M.append([0]*(len1+1))
+            D.append([0]*(len1+1))
+            I.append([0]*(len1+1))
+            Mp.append([0]*(len1+1))
+            Dp.append([0]*(len1+1))
+            Ip.append([0]*(len1+1))
 
-        for i in range(1, num2 + 1):
-            K[i] = K[i - 1] + a
-            Path_k.append(['I'] * i)
+        for i in range(1,len2+1):
+            M[i][0] = D[i][0] = I[i][0] = 0
+            Mp[i][0] = Dp[i][0] = Ip[i][0] = 1 # 1 is vertical
+        for i in range(1,len1+1):
+            M[0][i] = D[0][i] = I[0][i] = 0
+            Mp[0][i] = Dp[0][i] = Ip[0][i] = -1 # -1 is horizontal
 
-        for i in range(0, num2):
-            if key == 2:
-                D2[0] = K[i + 1]
-                I2[0] = K[i + 1]
-                M2[0] = K[i + 1]
-                Path2_m[0] = Path2_i[0] = Path2_d[0] = Path_k[i + 1]
-                for j in range(1, num1 + 1):
-                    score_d = 0.0
-                    for k1 in range(len(node1[3])):
-                        for k2 in range(len(node2[3])):
-                            extlist = Ext[node1[0][k1]][node2[0][k2]][0]
-                            score_d += self.showExt(extlist, node1[6][k1][j - 1], node2[6][k2][i])
-                    max_d = max(D2[j - 1], I2[j - 1], M2[j - 1])
-                    max_i = max(I1[j], M1[j], D1[j])
-                    max_m = max(D1[j - 1], I1[j - 1], M1[j - 1])
-                    if max_d == D2[j - 1]:
-                        Path2_d[j] = Path2_d[j - 1] + ['D']
-                    elif max_d == I2[j - 1]:
-                        Path2_d[j] = Path2_i[j - 1] + ['D']
+        for i in range(1, len2 + 1):
+            for j in range(1, len1 + 1):
+                score_d = 0.0
+                for k1 in range(len(node1[3])):
+                    for k2 in range(len(node2[3])):
+                        extlist = Ext[node1[0][k1]][node2[0][k2]][0]
+                        score_d += self.showExt(extlist, node1[6][k1][j - 1], node2[6][k2][i - 1])
+                if M[i-1][j-1] > D[i-1][j-1]:
+                    if I[i-1][j-1] >= M[i-1][j-1]:
+                        M[i][j] = I[i-1][j-1] + score_d
+                        Mp[i][j] = 1
                     else:
-                        Path2_d[j] = Path2_m[j - 1] + ['D']
-                    if max_i == I1[j]:
-                        Path2_i[j] = Path1_i[j] + ['I']
-                    elif max_i == D1[j]:
-                        Path2_i[j] = Path1_d[j] + ['I']
+                        M[i][j] = M[i-1][j-1] + score_d
+                else:
+                    if I[i-1][j-1] > D[i-1][j-1]:
+                        M[i][j] = I[i-1][j-1] + score_d
+                        Mp[i][j] = 1
                     else:
-                        Path2_i[j] = Path1_m[j] + ['I']
-                    if max_m == D1[j - 1]:
-                        Path2_m[j] = Path1_d[j - 1] + ['M']
-                    elif max_m == I1[j - 1]:
-                        Path2_m[j] = Path1_i[j - 1] + ['M']
+                        M[i][j] = D[i-1][j-1] + score_d
+                        Mp[i][j] = -1
+                if M[i][j-1] > D[i][j-1]:
+                    if I[i][j-1] >= M[i][j-1]:
+                        I[i][j] = I[i][j-1]
+                        Ip[i][j] = 1
                     else:
-                        Path2_m[j] = Path1_m[j - 1] + ['M']
-
-                    D2[j] = max_d
-                    I2[j] = max_i
-                    M2[j] = max_m + score_d / num_pair
-                    key = 1
+                        I[i][j] =  M[i][j-1]
+                else:
+                    if I[i][j-1] >= D[i][j-1]:
+                        I[i][j] = I[i][j-1]
+                        Ip[i][j] = 1
+                    else:
+                        I[i][j] = D[i][j-1]
+                        Ip[i][j] = -1
+                if M[i-1][j] > I[i-1][j] :
+                    if D[i-1][j] >= M[i-1][j] :
+                        D[i][j] = D[i-1][j]
+                        Dp[i][j] = -1
+                    else:
+                        D[i][j] = M[i-1][j]
+                else:
+                    if D[i-1][j] >= I[i-1][j]:
+                        D[i][j] = D[i-1][j]
+                        Dp[i][j] = -1
+                    else:
+                        D[i][j] = I[i-1][j]
+                        Dp[i][j] = 1
+        if M[len2][len1] > I[len2][len1]:
+            if M[len2][len1] > D[len2][len1]:
+                key = 0
             else:
-                D1[0] = K[i + 1]
-                I1[0] = K[i + 1]
-                M1[0] = K[i + 1]
-                Path1_m[0] = Path1_i[0] = Path1_d[0] = Path_k[i + 1]
-                for j in range(1, num1 + 1):
-                    score_d = 0.0
-                    for k1 in range(len(node1[3])):
-                        for k2 in range(len(node2[3])):
-                            extlist = Ext[node1[0][k1]][node2[0][k2]][0]
-                            score_d += self.showExt(extlist, node1[6][k1][j - 1], node2[6][k2][i])
-                    max_d = max(D1[j - 1], I1[j - 1], M1[j - 1])
-                    max_i = max(I2[j], M2[j], D2[j])
-                    max_m = max(D2[j - 1], I2[j - 1], M2[j - 1])
-                    if max_d == D1[j - 1]:
-                        Path1_d[j] = Path1_d[j - 1] + ['D']
-                    elif max_d == I1[j - 1]:
-                        Path1_d[j] = Path1_i[j - 1] + ['D']
-                    else:
-                        Path1_d[j] = Path1_m[j - 1] + ['D']
-                    if max_i == I2[j]:
-                        Path1_i[j] = Path2_i[j] + ['I']
-                    elif max_i == D2[j]:
-                        Path1_i[j] = Path2_d[j] + ['I']
-                    else:
-                        Path1_i[j] = Path2_m[j] + ['I']
-                    if max_m == D2[j - 1]:
-                        Path1_m[j] = Path2_d[j - 1] + ['M']
-                    elif max_m == I2[j - 1]:
-                        Path1_m[j] = Path2_i[j - 1] + ['M']
-                    else:
-                        Path1_m[j] = Path2_m[j - 1] + ['M']
-
-                    D1[j] = max_d
-                    I1[j] = max_i
-                    M1[j] = max_m + score_d / num_pair
-                    key = 2
-        '''need to refine the sequence'''
+                key = -1
+        else:
+            if I[len2][len1] > D[len2][len1]:
+                key = 1
+            else:
+                key = -1
+        #need to refine the sequence
         aligned = []
         realIndex = []
         seqnum1 = len(node1[3])
         seqnum2 = len(node2[3])
-        points = [0] * (seqnum1 + seqnum2)
         for i in range(seqnum1 + seqnum2):
             aligned.append([])
             realIndex.append([])
-        if key == 2:
-            max_score = max(M1[num1], D1[num1], I1[num1])
-            if M1[num1] == max_score:
-                Path = Path1_m[num1]
-            elif D1[num1] == max_score:
-                Path = Path1_d[num1]
+        i = len2
+        j = len1
+        while i != 0 and j != 0:
+            if key == 0:
+                key = Mp[i][j]
+                i -= 1
+                j -= 1
+                for k in range(seqnum1):
+                    aligned[k].append(node1[3][k][j])
+                    realIndex[k].append(node1[6][k][j])
+                for k in range(seqnum2):
+                    aligned[seqnum1 + k].append(node2[3][k][i])
+                    realIndex[seqnum1 + k].append(node2[6][k][i])
+            elif key == 1:
+                key = Ip[i][j]
+                j -= 1
+                for k in range(seqnum1):
+                    aligned[k].append(node1[3][k][j])
+                    realIndex[k].append(node1[6][k][j])
+                for k in range(seqnum2):
+                    aligned[seqnum1 + k].append('-')
+                    realIndex[seqnum1 + k].append(-1)
             else:
-                Path = Path1_i[num1]
-        else:
-            max_score = max(M2[num1], D2[num1], I2[num1])
-            if M2[num1] == max_score:
-                Path = Path2_m[num1]
-            elif D2[num1] == max_score:
-                Path = Path2_d[num1]
-            else:
-                Path = Path2_i[num1]
-        for c in Path:
-            if c == 'M':
-                for i in range(seqnum1):
-                    aligned[i].append(node1[3][i][points[i]])
-                    realIndex[i].append(node1[6][i][points[i]])
-                    points[i]+=1
-                for i in range(seqnum2):
-                    aligned[seqnum1 + i].append(node2[3][i][points[seqnum1 + i]])
-                    realIndex[seqnum1 + i].append(node2[6][i][points[seqnum1 + i]])
-                    points[seqnum1 + i]+=1
-            elif c == 'I':
-                for i in range(seqnum1):
-                    aligned[i].append('-')
-                    realIndex[i].append(-1)
-                for i in range(seqnum2):
-                    aligned[seqnum1 + i].append(node2[3][i][points[seqnum1 + i]])
-                    realIndex[seqnum1 + i].append(node2[6][i][points[seqnum1 + i]])
-                    points[seqnum1 + i]+=1
-            else:
-                for i in range(seqnum1):
-                    aligned[i].append(node1[3][i][points[i]])
-                    realIndex[i].append(node1[6][i][points[i]])
-                    points[i]+=1
-                for i in range(seqnum2):
-                    aligned[seqnum1 + i].append('-')
-                    realIndex[seqnum1 + i].append(-1)
+                key = Dp[i][j]
+                i -= 1
+                for k in range(seqnum1):
+                    aligned[k].append('-')
+                    realIndex[k].append(-1)
+                for k in range(seqnum2):
+                    aligned[seqnum1 + k].append(node2[3][k][i])
+                    realIndex[seqnum1 + k].append(node2[6][k][i])
+        while i != 0:
+            i -= 1
+            for k in range(seqnum1):
+                aligned[k].append('-')
+                realIndex[k].append(-1)
+            for k in range(seqnum2):
+                aligned[seqnum1 + k].append(node2[3][k][i])
+                realIndex[seqnum1 + k].append(node2[6][k][i])
+        while j != 0:
+            j -= 1
+            for k in range(seqnum1):
+                aligned[k].append(node1[3][k][j])
+                realIndex[k].append(node1[6][k][j])
+            for k in range(seqnum2):
+                aligned[seqnum1 + k].append('-')
+                realIndex[seqnum1 + k].append(-1)
+        for i in range(seqnum1):
+            aligned[i] = aligned[i][::-1]
+            realIndex[i] = realIndex[i][::-1]
+        for i in range(seqnum2):
+            aligned[seqnum1 + i] = aligned[seqnum1 + i][::-1]
+            realIndex[seqnum1 + i] = realIndex[seqnum1 + i][::-1]
         return aligned, realIndex
+
     def showExt (self, extlist, i, j):
         if i == -1:
             return 0
@@ -537,9 +497,117 @@ class sequences:
             else:
                 return 0
 
+    def sc(self, seq1,seq2):
+        s1 = seq1 + []
+        s2 = seq2 + []
+        l = len(s1)
+        i = 0
+        score = 0
+
+        while(i < len(s1)):
+            if(s1[i] == '-' and seq2[i] == '-'):
+                s1.pop(i)
+                s2.pop(i)
+                continue
+            i+=1
+
+        if(s1[0] == s2[0]):
+            score-=1
+        elif (s1[0] == '-' or s2[0] == '-'):
+            score += 3
+        else:
+            score += 2
+
+        #print s1,s2
+        l = len(s1)
+        for i in range(1,l):
+            if(s1[i] == s2[i]):
+                score-=1
+
+            elif(s1[i] == '-'):
+                if(s1[i-1] == '-'):
+                    score += 2
+                else:                score += 3
+            elif(s2[i] == '-'):
+                if(s2[i-1] == '-'):
+                    score += 2
+                else:
+                    score += 3
+            else:
+                score += 2
+        return score
+
+    def sortdistance(self, node):
+        if node[1]:
+            self.sortdistance(node[1])
+        if node[2]:
+            self.sortdistance(node[2])
+        index = 0
+        for i in range(len(self.distance)):
+            if (self.distance[i][5] < node[5]):
+                break
+            else :
+                index += 1
+        self.distance.insert(index, node)
+
+    def evalue(self, seqs):
+        num = len(seqs)
+        summ = 0
+        score = []
+        for i in range(num):
+            score.append([0]*num)
+
+        for i in range(num):
+            for j in range(i):
+                score[i][j] = self.sc(seqs[i], seqs[j])
+                score[j][i] = self.sc(seqs[i], seqs[j])
+                summ += score[i][j]
+        #print score,"\n\n"
+        return summ
+
+    def refine(self, times):
+        # num, left, right, seqs, size, distance, realindex
+        root = self.tree
+        self.sortdistance(root)
+        for i in range(len(self.distance)):
+            print self.distance[i][0], self.distance[i][5]
+        max_score = self.evalue(root[3])
+        print max_score
+        for i in range(times):
+            node1 = self.distance[i]
+            node2 = [[], [], [], [], -1, -1, []]
+            for j in range(len(root[0])):
+                if j not in node1[0]:
+                    node2[0].append(j)
+                    node2[3].append(root[3][root[0].index(j)])
+                    node2[6].append(root[6][root[0].index(j)])
+            aligned, realIndex = self.multipairwise(node1, node2)
+            score = self.evalue(aligned)
+            if (score < max_score):
+                max_score = score
+                root[3] = aligned
+                root[0] = node1[0] + node2[0]
+                root[6] = realIndex
+            print max_score
+        index = 0
+        for k1 in range(len(root[3][0])):
+            all_gap = True
+            for i in range(len(root[3])):
+                if root[3][i][index] != '-':
+                    all_gap = False
+                    break
+            if all_gap:
+                for i in range(len(root[3])):
+                    del root[3][i][index]
+            else:
+                index += 1
+        f = open("424tcoffee.txt", "w")
+        for seq in root[3]:
+            print >>f, seq
+
 # class tree:
 if __name__ == "__main__":
-    fp = open("data.txt","r")
+    fp = open("datatree.txt","r")
     seq = []
     while (1):
         one = []
@@ -552,15 +620,21 @@ if __name__ == "__main__":
         one.pop()
         seq.append(one)
     fp.close()
-    mul = sequences(seq, 2.0, 3.0, 1.0)
+    mul = sequences(seq[0:20], 2.0, 3.0, 1.0)
     t1 = time.clock()
+    print "begin init"
     mul.init_matrix()
 
     t2 = time.clock()
+    print "begin build"
     mul.buildtree()
 
     t3 = time.clock()
+    print "begin complete"
     mul.complete()
-    t4 = time.clock()
 
-    print "%f, %f, %f" % (t2-t1, t3-t2, t4-t3)
+    t4 = time.clock()
+    mul.refine(10)
+    t5 = time.clock()
+
+    print "%f, %f, %f, %f" % (t2-t1, t3-t2, t4-t3, t5-t4)
