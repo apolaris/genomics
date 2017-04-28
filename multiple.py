@@ -44,166 +44,128 @@ class sequences:
             node = [[i], [], [], [self.seqs[i]], [], -1, -1, 0]
             self.score[i].append(node)
             for j in range(0, i):
-                self.score[i][j] = self.pairwise(i, j)
+                print i,j
+                self.score[i][j] = self.pairwise2(i, j)
                 self.score[j][i] = self.score[i][j]
         self.distance = []
 
     # compare the two sequences
-    def pairwise(self, i, j):  # penalty for gap is a(k-1)+b
-        a = self.a
-        b = self.b
-        mis = self.mis
+    def pairwise(self, i, j):
         s1 = self.seqs[i]
         s2 = self.seqs[j]
-        num1 = len(s1)
-        num2 = len(s2)
-        D1 = [0] * (num1 + 1)
-        D2 = [0] * (num1 + 1)
-        I1 = [0] * (num1 + 1)
-        I2 = [0] * (num1 + 1)
-        M1 = [0] * (num1 + 1)
-        M2 = [0] * (num1 + 1)
-        Dnum1 = [0.0] * (num1 + 1)
-        Dnum2 = [0.0] * (num1 + 1)
-        Inum1 = [0.0] * (num1 + 1)
-        Inum2 = [0.0] * (num1 + 1)
-        Mnum1 = [0.0] * (num1 + 1)
-        Mnum2 = [0.0] * (num1 + 1)
-        Dn1 = [0.0] * (num1 + 1)
-        Dn2 = [0.0] * (num1 + 1)
-        In1 = [0.0] * (num1 + 1)
-        In2 = [0.0] * (num1 + 1)
-        Mn1 = [0.0] * (num1 + 1)
-        Mn2 = [0.0] * (num1 + 1)
-        K = [0] * (num2 + 1)
-        D1[1] = I1[1] = M1[1] = K[1] = b
-        key = 2
-        kkk = 0
-        lll = 0
-        for i in range(2, num1 + 1):
-            D1[i] = D1[i - 1] + a
-            I1[i] = D1[i]
-            M1[i] = D1[i]
-        for i in range(2, num2 + 1):
-            K[i] = K[i-1] + a
-
-        for i in range(0, num2):
-            if key == 2:
-                D2[0] = K[i + 1]
-                I2[0] = K[i + 1]
-                M2[0] = K[i + 1]
-                for j in range(1, num1 + 1):
-                    if(s1[j - 1]==s2[i]):
-                        kkk = -1.0
-                        lll = 1.0
+        len1 = len(s1)
+        len2 = len(s2)
+        M = []
+        D = []
+        I = []
+        Mp = []
+        Dp = []
+        Ip = []
+        a = self.a
+        b = self.b
+        for i in range(len2+1):
+            M.append([0]*(len1+1))
+            D.append([0]*(len1+1))
+            I.append([0]*(len1+1))
+            Mp.append([0]*(len1+1))
+            Dp.append([0]*(len1+1))
+            Ip.append([0]*(len1+1))
+        M[0][0] = D[0][0] = I[0][0] = 0
+        M[1][0] = D[1][0] = I[1][0] = 3
+        M[0][1] = D[0][1] = I[0][1] = 3
+        Mp[1][0] = Dp[1][0] = Ip[1][0] = 1 # 1 is vertical
+        Mp[0][1] = Dp[0][1] = Ip[0][1] = -1 # -1 is horizontal
+        for i in range(2,len2+1):
+            M[i][0] = D[i][0] = I[i][0] = I[i-1][0] + 2
+            Mp[i][0] = Dp[i][0] = Ip[i][0] = 1
+        for i in range(2,len1+1):
+            M[0][i] = D[0][i] = I[0][i] = I[0][i-1] + 2
+            Mp[0][i] = Dp[0][i] = Ip[0][i] = -1
+        for i in range(1,len2+1):
+            for j in range(1,len1+1):
+                if(M[i-1][j-1] <= D[i-1][j-1]):
+                    if(I[i-1][j-1] < M[i-1][j-1]):
+                        M[i][j] = I[i-1][j-1] + match(s1[j-1], s2[i-1])
+                        Mp[i][j] = 1
                     else:
-                        kkk = 2.0
-                        lll = 0
-                    if(D1[j-1] < I1[j-1] and D1[j-1] < M1[j - 1]):
-                        D2[j] = D1[j-1] + kkk
-                        Dnum2[j] = Dnum1[j-1] + lll
-                        Dn2[j] = Dn1[j-1] + 1.0
-                    elif (I1[j-1] < M1[j - 1]):
-                        D2[j] = I1[j-1] + kkk
-                        Dnum2[j] = Inum1[j-1] + lll
-                        Dn2[j] = In1[j-1] + 1.0
+                        M[i][j] = M[i-1][j-1] + match(s1[j-1], s2[i-1])
+                else:
+                    if(I[i-1][j-1] < D[i-1][j-1]):
+                        M[i][j] = I[i-1][j-1] + match(s1[j-1], s2[i-1])
+                        Mp[i][j] = 1
                     else:
-                        D2[j] = M1[j-1] + kkk
-                        Dnum2[j] = Mnum1[j-1] + lll
-                        Dn2[j] = Mn1[j-1] + 1.0
-                    #########
-                    if(I1[j] + a < M1[j] + b and I1[j] + a < D1[j] + b ):
-                        I2[j] = I1[j] + a
-                        Inum2[j] = Inum1[j]
-                        In2[j] = In1[j] + 1.0
-                    elif(M1[j]  < D1[j]  ):
-                        I2[j] = M1[j] + b
-                        Inum2[j] = Mnum1[j]
-                        In2[j] = Mn1[j] + 1.0
+                        M[i][j] = D[i-1][j-1] + match(s1[j-1], s2[i-1])
+                        Mp[i][j] = -1
+                if(M[i][j-1] <= D[i][j-1]):
+                    if(I[i][j-1] + a < M[i][j-1] + b):
+                        I[i][j] = I[i][j-1] + a
+                        Ip[i][j] = 1
                     else:
-                        I2[j] = D1[j] + b
-                        Inum2[j] = Dnum1[j]
-                        In2[j] = Dn1[j] + 1.0
-                    ##########
-                    if(M2[j - 1] + a < I2[j - 1] + b and M2[j - 1] + a < D2[j - 1] + b):
-                        M2[j] = M2[j - 1] + a
-                        Mnum2[j] = Mnum2[j-1]
-                        Mn2[j] = Mn2[j-1] + 1.0
-                    if(I2[j - 1] < D2[j - 1] ):
-                        M2[j] = I2[j - 1] + a
-                        Mnum2[j] = Inum2[j-1]
-                        Mn2[j] = In2[j-1] + 1.0
+                        I[i][j] =  M[i][j-1] + b
+                else:
+                    if(I[i][j-1] + a < D[i][j-1] + b):
+                        I[i][j] = I[i][j-1] + a
+                        Ip[i][j] = 1
                     else:
-                        M2[j] = D2[j - 1] + a
-                        Mnum2[j] = Dnum2[j-1]
-                        Mn2[j] = Dn2[j-1] + 1.0
+                        I[i][j] = D[i][j-1] + b
+                        Ip[i][j] = -1
+                if(M[i-1][j] <= I[i-1][j]):
+                    if(D[i-1][j] + a < M[i-1][j] + b):
+                        D[i][j] = D[i-1][j] + a
+                        Dp[i][j] = -1
+                    else:
+                        D[i][j] = M[i-1][j] + b
+                else:
+                    if(D[i-1][j] + a < I[i-1][j] + b):
+                        D[i][j] = D[i-1][j] + a
+                        Dp[i][j] = -1
+                    else:
+                        D[i][j] = I[i-1][j] + b
+                        Dp[i][j] = 1
+        i = len2
+        j = len1
+        if(M[len2][len1] < I[len2][len1]):
+            if(M[len2][len1] < D[len2][len1]):
+                key = 0
+            else:
+                key = -1
+        else:
+            if(I[len2][len1] < D[len2][len1]):
                 key = 1
             else:
-                D1[0] = K[i + 1]
-                I1[0] = K[i + 1]
-                M1[0] = K[i + 1]
-                for j in range(1, num1 + 1):
-                    if(s1[j - 1]==s2[i]):
-                        kkk = -1.0
-                        lll = 1.0
-                    else:
-                        kkk = 2.0
-                        lll = 0
-                    if(D2[j-1] < I2[j-1] and D2[j-1] < M2[j - 1]):
-                        D1[j] = D2[j-1] + kkk
-                        Dnum1[j] = Dnum2[j-1] + lll
-                        Dn1[j] = Dn2[j-1] + 1.0
-                    elif (I2[j-1] < M2[j - 1]):
-                        D1[j] = I2[j-1] + kkk
-                        Dnum1[j] = Inum2[j-1] + lll
-                        Dn1[j] = In2[j-1] + 1.0
-                    else:
-                        D1[j] = M2[j-1] + kkk
-                        Dnum1[j] = Mnum2[j-1] + lll
-                        Dn1[j] = Mn2[j-1] + 1.0
-                    #########
-                    if(I2[j] + a < M2[j] + b and I2[j] + a < D2[j] + b ):
-                        I1[j] = I2[j] + a
-                        Inum1[j] = Inum2[j]
-                        In1[j] = In2[j] + 1.0
-                    elif(M2[j]  < D2[j]  ):
-                        I1[j] = M2[j] + b
-                        Inum1[j] = Mnum2[j]
-                        In1[j] = Mn2[j] + 1.0
-                    else:
-                        I1[j] = D2[j] + b
-                        Inum1[j] = Dnum2[j]
-                        In1[j] = Dn2[j] + 1.0
-                    ##########
-                    if(M1[j - 1] + a < I1[j - 1] + b and M1[j - 1] + a < D1[j - 1] + b):
-                        M1[j] = M1[j - 1] + a
-                        Mnum1[j] = Mnum1[j-1]
-                        Mn1[j] = Mn1[j-1] + 1.0
-                    if(I1[j - 1] < D1[j - 1] ):
-                        M1[j] = I1[j - 1] + a
-                        Mnum1[j] = Inum1[j-1]
-                        Mn1[j] = In1[j-1] + 1.0
-                    else:
-                        M1[j] = D1[j - 1] + a
-                        Mnum1[j] = Dnum1[j-1]
-                        Mn1[j] = Dn1[j-1] + 1.0
-                key = 2
-        if (key == 2):
-            M2[num1] = M1[num1]
-            D2[num1] = D1[num1]
-            I2[num1] = I1[num1]
-            Mnum2[num1] = Mnum1[num1]
-            Dnum2[num1] = Dnum1[num1]
-            Inum2[num1] = Inum1[num1]
-            Mn2[num1] = Mn1[num1]
-            Dn2[num1] = Dn1[num1]
-            In2[num1] = In1[num1]
-        if(M2[num1] < D2[num1] and M2[num1] < I2[num1]):
-            return 1 - Mnum2[num1]/Mn2[num1]
-        elif(D2[num1] < I2[num1]):
-            return 1 - Dnum2[num1]/Dn2[num1]
-        else:
-            return 1 - Inum2[num1]/In2[num1]
+                key = -1
+        align = [[],[]]
+        while(i != 0 and j != 0):
+            if(key == 0):
+                key = Mp[i][j]
+                i-=1
+                j-=1
+                align[0].append(s1[j])
+                align[1].append(s2[i])
+            elif(key == 1 ):
+                key = Ip[i][j]
+                j-=1
+                align[0].append(s1[j])
+                align[1].append('-')
+            else:
+                key = Dp[i][j]
+                i-=1
+                align[0].append('-')
+                align[1].append(s2[i])
+        while(i!=0):
+            i-=1
+            align[0].append('-')
+            align[1].append(s2[i])
+        while(j!=0):
+            j-=1
+            align[0].append(s1[j])
+            align[1].append('-')
+        leng = len(align[0])
+        same = 0.0
+        for i in range(leng):
+            if(align[0][i] == align[1][i]):
+                same += 1
+        return same/leng
 
     def buildtree(self):
 
@@ -217,7 +179,7 @@ class sequences:
         for i in range(0, num):
             nj.append([0] * num)
         while(num >= 4):
-            d = 0
+            d = -1
             di = -1
             dj = -1
             for i in range(0, num):
@@ -229,9 +191,10 @@ class sequences:
                         d = nj[i][j]
                         di = i
                         dj = j
-
+            #print diff[di][dj],num,di,dj
             diff[di][num][5] = 0.5 * diff[di][dj] + (su[di] - su[dj]) / (2 * (num -2))
             diff[dj][num][5] = diff[di][dj] - diff[di][num][5]
+            #print su[di] - su[dj], diff[di][num][5], diff[dj][num][5]
             node = [[], diff[di][num], diff[dj][num], [], [], -1, -1, 0]
             diffk = []
 
@@ -315,7 +278,7 @@ class sequences:
     def complete(self):
         root = self.tree
         self.dfs(root)
-        #print root[0]
+        print root[4]
         #self.refine()
         '''f = open("424clustal.txt", "w")
         for seq in root[3]:
@@ -332,7 +295,7 @@ class sequences:
         node[0] = node[1][0] + node[2][0]
 
     # [num, left, right, seqs, weight, distance, height]
-    '''def multipairwise(self, node1, node2):
+    def multipairwise(self, node1, node2):
         a = -self.a
         b = -self.b
         len1 = len(node1[3][0])
@@ -384,14 +347,17 @@ class sequences:
                     break
             gap2.append(all_gap)
         weight_sum /= num_pair
-        pena = weight_sum * a
-        penb = weight_sum * b
+        #pena = weight_sum * a
+        #penb = weight_sum * b
+        pena = a
+        penb = b
         for i in range(1, len2 + 1):
             for j in range(1, len1 + 1):
                 score_d = 0.0
                 for k1 in range(len(node1[3])):
                     for k2 in range(len(node2[3])):
-                        score_d += compare(node1[3][k1][j - 1], node2[3][k2][i - 1]) * node1[4][k1] * node2[4][k2]
+                        #score_d += compare(node1[3][k1][j - 1], node2[3][k2][i - 1]) * node1[4][k1] * node2[4][k2]
+                        score_d += compare(node1[3][k1][j - 1], node2[3][k2][i - 1])
                 score_d /= num_pair
                 if M[i-1][j-1] > D[i-1][j-1]:
                     if I[i-1][j-1] > M[i-1][j-1]:
@@ -490,9 +456,9 @@ class sequences:
             aligned[i] = aligned[i][::-1]
         for i in range(seqnum2):
             aligned[seqnum1 + i] = aligned[seqnum1 + i][::-1]
-        return aligned'''
+        return aligned
 
-    def multipairwise(self, node1, node2):
+    '''def multipairwise(self, node1, node2):
         a = -self.a
         b = -self.b
         len1 = len(node1[3][0])
@@ -680,7 +646,7 @@ class sequences:
             aligned[i] = aligned[i][::-1]
         for i in range(seqnum2):
             aligned[seqnum1 + i] = aligned[seqnum1 + i][::-1]
-        return aligned
+        return aligned'''
 
     def sortdistance(self, node):
         if node[1]:
@@ -773,14 +739,324 @@ class sequences:
                 root[0] = node1[0] + node2[0]
                 root[4] = node1[4] + node2[4]
             print max_score
-        f = open("424clustal2.txt", "w")
+        index = 0
+        for k1 in range(len(root[3][0])):
+            all_gap = True
+            for i in range(len(root[3])):
+                if root[3][i][index] != '-':
+                    all_gap = False
+                    break
+            if all_gap:
+                for i in range(len(root[3])):
+                    del root[3][i][index]
+            else:
+                index += 1
+        f = open("427clustal4.txt", "w")
         for seq in root[3]:
             print >>f, seq
+
+    def pairwise2(self, i, j):
+        s1 = self.seqs[i]
+        s2 = self.seqs[j]
+        len1 = len(s1)
+        len2 = len(s2)
+        M = []
+        D = []
+        I = []
+        Mp = []
+        Dp = []
+        Ip = []
+        a = self.a
+        b = self.b
+        for i in range(len2+1):
+            M.append([100000000]*(len1+1))
+            D.append([100000000]*(len1+1))
+            I.append([100000000]*(len1+1))
+            Mp.append([0]*(len1+1))
+            Dp.append([0]*(len1+1))
+            Ip.append([0]*(len1+1))
+        M[0][0] = D[0][0] = I[0][0] = 0
+        M[1][0] = D[1][0] = I[1][0] = 3
+        M[0][1] = D[0][1] = I[0][1] = 3
+        Mp[1][0] = Dp[1][0] = Ip[1][0] = 1 # 1 is vertical
+        Mp[0][1] = Dp[0][1] = Ip[0][1] = -1 # -1 is horizontal
+        for i in range(2,len2+1):
+            M[i][0] = D[i][0] = I[i][0] = I[i-1][0] + 2
+            Mp[i][0] = Dp[i][0] = Ip[i][0] = 1
+        for i in range(2,len1+1):
+            M[0][i] = D[0][i] = I[0][i] = I[0][i-1] + 2
+            Mp[0][i] = Dp[0][i] = Ip[0][i] = -1
+        quart = len1/4
+        begin = 0
+        end = 0
+        for i in range(1,len2+1):
+            begin = i - quart
+            end = i + quart
+            if(begin <= 0):
+                begin = 1
+            if(end > len1):
+                end = len1+1
+            for j in range(begin,end):
+                if(M[i-1][j-1] <= D[i-1][j-1]):
+                    if(I[i-1][j-1] < M[i-1][j-1]):
+                        M[i][j] = I[i-1][j-1] + match(s1[j-1], s2[i-1])
+                        Mp[i][j] = 1
+                    else:
+                        M[i][j] = M[i-1][j-1] + match(s1[j-1], s2[i-1])
+                else:
+                    if(I[i-1][j-1] < D[i-1][j-1]):
+                        M[i][j] = I[i-1][j-1] + match(s1[j-1], s2[i-1])
+                        Mp[i][j] = 1
+                    else:
+                        M[i][j] = D[i-1][j-1] + match(s1[j-1], s2[i-1])
+                        Mp[i][j] = -1
+                if(M[i][j-1] <= D[i][j-1]):
+                    if(I[i][j-1] + a < M[i][j-1] + b):
+                        I[i][j] = I[i][j-1] + a
+                        Ip[i][j] = 1
+                    else:
+                        I[i][j] =  M[i][j-1] + b
+                else:
+                    if(I[i][j-1] + a < D[i][j-1] + b):
+                        I[i][j] = I[i][j-1] + a
+                        Ip[i][j] = 1
+                    else:
+                        I[i][j] = D[i][j-1] + b
+                        Ip[i][j] = -1
+                if(M[i-1][j] <= I[i-1][j]):
+                    if(D[i-1][j] + a < M[i-1][j] + b):
+                        D[i][j] = D[i-1][j] + a
+                        Dp[i][j] = -1
+                    else:
+                        D[i][j] = M[i-1][j] + b
+                else:
+                    if(D[i-1][j] + a < I[i-1][j] + b):
+                        D[i][j] = D[i-1][j] + a
+                        Dp[i][j] = -1
+                    else:
+                        D[i][j] = I[i-1][j] + b
+                        Dp[i][j] = 1
+        i = len2
+        j = len1
+        if(M[len2][len1] < I[len2][len1]):
+            if(M[len2][len1] < D[len2][len1]):
+                key = 0
+            else:
+                key = -1
+        else:
+            if(I[len2][len1] < D[len2][len1]):
+                key = 1
+            else:
+                key = -1
+        align = [[],[]]
+        while(i != 0 and j != 0):
+            if(key == 0):
+                key = Mp[i][j]
+                i-=1
+                j-=1
+                align[0].append(s1[j])
+                align[1].append(s2[i])
+            elif(key == 1 ):
+                key = Ip[i][j]
+                j-=1
+                align[0].append(s1[j])
+                align[1].append('-')
+            else:
+                key = Dp[i][j]
+                i-=1
+                align[0].append('-')
+                align[1].append(s2[i])
+        while(i!=0):
+            i-=1
+            align[0].append('-')
+            align[1].append(s2[i])
+        while(j!=0):
+            j-=1
+            align[0].append(s1[j])
+            align[1].append('-')
+        leng = len(align[0])
+        same = 0.0
+        for i in range(leng):
+            if(align[0][i] == align[1][i]):
+                same += 1
+        return same/leng
+
+    def multipairwise2(self, node1, node2):
+        a = -self.a
+        b = -self.b
+        len1 = len(node1[3][0])
+        len2 = len(node2[3][0])
+        num_pair = len(node1[3]) * len(node2[3])
+        M = []
+        D = []
+        I = []
+        Mp = []
+        Dp = []
+        Ip = []
+        for i in range(len2+1):
+            M.append([-10000000]*(len1+1))
+            D.append([-10000000]*(len1+1))
+            I.append([-10000000]*(len1+1))
+            Mp.append([0]*(len1+1))
+            Dp.append([0]*(len1+1))
+            Ip.append([0]*(len1+1))
+        M[0][0] = D[0][0] = I[0][0] = 0
+        M[1][0] = D[1][0] = I[1][0] = b
+        M[0][1] = D[0][1] = I[0][1] = b
+        Mp[1][0] = Dp[1][0] = Ip[1][0] = 1 # 1 is vertical
+        Mp[0][1] = Dp[0][1] = Ip[0][1] = -1 # -1 is horizontal
+        for i in range(2,len2+1):
+            M[i][0] = D[i][0] = I[i][0] = I[i-1][0] + a
+            Mp[i][0] = Dp[i][0] = Ip[i][0] = 1 # 1 is vertical
+        for i in range(2,len1+1):
+            M[0][i] = D[0][i] = I[0][i] = I[0][i-1] + a
+            Mp[0][i] = Dp[0][i] = Ip[0][i] = -1 # -1 is horizontal
+        begin = 0
+        end = 1
+        quart = len1/4
+
+        weight_sum = 0.0
+        for k1 in range(len(node1[3])):
+            for k2 in range(len(node2[3])):
+                weight_sum += node1[4][k1] * node2[4][k2]
+        gap1 = []
+        gap2 = []
+        for k1 in range(len(node1[3][0])):
+            all_gap = True
+            for i in range(len(node1[3])):
+                if node1[3][i][k1] != '-':
+                    all_gap = False
+                    break
+            gap1.append(all_gap)
+        for k1 in range(len(node2[3][0])):
+            all_gap = True
+            for i in range(len(node2[3])):
+                if node2[3][i][k1] != '-':
+                    all_gap = False
+                    break
+            gap2.append(all_gap)
+        weight_sum /= num_pair
+        #pena = weight_sum * a
+        #penb = weight_sum * b
+        pena = a
+        penb = b
+        for i in range(1, len2 + 1):
+            begin = i - quart
+            end = i + quart
+            if(begin <= 0):
+                begin = 1
+            if(end > len1):
+                end = len1+1
+            for j in range(begin, end):
+                score_d = 0.0
+                for k1 in range(len(node1[3])):
+                    for k2 in range(len(node2[3])):
+                        #score_d += compare(node1[3][k1][j - 1], node2[3][k2][i - 1]) * node1[4][k1] * node2[4][k2]
+                        score_d += compare(node1[3][k1][j - 1], node2[3][k2][i - 1])
+                score_d /= num_pair
+                if M[i-1][j-1] > D[i-1][j-1]:
+                    if I[i-1][j-1] > M[i-1][j-1]:
+                        M[i][j] = I[i-1][j-1] + score_d
+                        Mp[i][j] = 1
+                    else:
+                        M[i][j] = M[i-1][j-1] + score_d
+                else:
+                    if I[i-1][j-1] > D[i-1][j-1]:
+                        M[i][j] = I[i-1][j-1] + score_d
+                        Mp[i][j] = 1
+                    else:
+                        M[i][j] = D[i-1][j-1] + score_d
+                        Mp[i][j] = -1
+                if M[i][j-1] > D[i][j-1]:
+                    if I[i][j-1] + pena > M[i][j-1] + penb:
+                        I[i][j] = I[i][j-1] + pena
+                        Ip[i][j] = 1
+                    else:
+                        I[i][j] =  M[i][j-1] + penb
+                else:
+                    if I[i][j-1] + pena > D[i][j-1] + penb:
+                        I[i][j] = I[i][j-1] + pena
+                        Ip[i][j] = 1
+                    else:
+                        I[i][j] = D[i][j-1] + penb
+                        Ip[i][j] = -1
+                if M[i-1][j] > I[i-1][j] :
+                    if D[i-1][j] + pena > M[i-1][j] + penb:
+                        D[i][j] = D[i-1][j] + pena
+                        Dp[i][j] = -1
+                    else:
+                        D[i][j] = M[i-1][j] + penb
+                else:
+                    if D[i-1][j] + pena > I[i-1][j] + penb:
+                        D[i][j] = D[i-1][j] + pena
+                        Dp[i][j] = -1
+                    else:
+                        D[i][j] = I[i-1][j] + penb
+                        Dp[i][j] = 1
+        if M[len2][len1] > I[len2][len1]:
+            if M[len2][len1] > D[len2][len1]:
+                key = 0
+            else:
+                key = -1
+        else:
+            if I[len2][len1] > D[len2][len1]:
+                key = 1
+            else:
+                key = -1
+        #need to refine the sequence
+        aligned = []
+        seqnum1 = len(node1[3])
+        seqnum2 = len(node2[3])
+        points = [0] * (seqnum1 + seqnum2)
+        for i in range(seqnum1 + seqnum2):
+            aligned.append([])
+        i = len2
+        j = len1
+        while i != 0 and j != 0:
+            if key == 0:
+                key = Mp[i][j]
+                i -= 1
+                j -= 1
+                for k in range(seqnum1):
+                    aligned[k].append(node1[3][k][j])
+                for k in range(seqnum2):
+                    aligned[seqnum1 + k].append(node2[3][k][i])
+            elif key == 1:
+                key = Ip[i][j]
+                j -= 1
+                for k in range(seqnum1):
+                    aligned[k].append(node1[3][k][j])
+                for k in range(seqnum2):
+                    aligned[seqnum1 + k].append('-')
+            else:
+                key = Dp[i][j]
+                i -= 1
+                for k in range(seqnum1):
+                    aligned[k].append('-')
+                for k in range(seqnum2):
+                    aligned[seqnum1 + k].append(node2[3][k][i])
+        while i != 0:
+            i -= 1
+            for k in range(seqnum1):
+                aligned[k].append('-')
+            for k in range(seqnum2):
+                aligned[seqnum1 + k].append(node2[3][k][i])
+        while j != 0:
+            j -= 1
+            for k in range(seqnum1):
+                aligned[k].append(node1[3][k][j])
+            for k in range(seqnum2):
+                aligned[seqnum1 + k].append('-')
+        for i in range(seqnum1):
+            aligned[i] = aligned[i][::-1]
+        for i in range(seqnum2):
+            aligned[seqnum1 + i] = aligned[seqnum1 + i][::-1]
+        return aligned
 
 
 # class tree:
 if __name__ == "__main__":
-    fp = open("good3.txt","r")
+    fp = open("good5.txt","r")
     seq = []
     while (1):
         one = []
@@ -793,7 +1069,7 @@ if __name__ == "__main__":
         one.pop()
         seq.append(one)
     fp.close()
-    mul = sequences(seq[0:20], 2.0, 3.0, 1.0)
+    mul = sequences(seq[0:100], 2.0, 3.0, 1.0)
     t1 = time.clock()
     mul.init_matrix()
 

@@ -85,12 +85,14 @@ class sequences:
                 self.ext[i][j].append(kkk2)
                 self.ext[j][i].append(100 * matc/leng)
                 self.ext[j][i].append(align2)
+        t2 = time.clock()
         for i in range(self.num):
             for j in range(i):
+                print i,j,1
                 for s in range(self.num):
                     if(s == i or s == j):
                         continue
-                    print i,j,1
+
                     ois = self.ext[i][s][1]
                     ojs = self.ext[j][s][1]
                     numiss = -1
@@ -138,6 +140,8 @@ class sequences:
                 self.ext[j][i].append(self.ext[i][j][1])
                 self.ext[j][i].append(self.ext[i][j][0])
 
+        t3 = time.clock()
+        print "extension: ", t3-t2
     # compare the two sequences
     def pairwise(self, i, j):
         s1 = self.seqs[i]
@@ -265,7 +269,7 @@ class sequences:
         for i in range(0, num):
             nj.append([0] * num)
         while(num >= 4):
-            d = 0
+            d = -1
             di = -1
             dj = -1
             for i in range(0, num):
@@ -278,7 +282,7 @@ class sequences:
                         di = i
                         dj = j
 
-            diff[di][num][5] = 0.5 * diff[di][dj] + (su[di] - su[dj]) / (2 * (num -2))
+            diff[di][num][5] = 0.5 * diff[di][dj] + (su[di] - su[dj])/ (2 * (num -2))
             diff[dj][num][5] = diff[di][dj] - diff[di][num][5]
             node = [[], diff[di][num], diff[dj][num], [], 0, -1, []]
             diffk = []
@@ -380,7 +384,7 @@ class sequences:
                     for k2 in range(len(node2[3])):
                         extlist = Ext[node1[0][k1]][node2[0][k2]][0]
                         score_d += self.showExt(extlist, node1[6][k1][j - 1], node2[6][k2][i - 1])
-                if M[i-1][j-1] > D[i-1][j-1]:
+                if M[i-1][j-1] >= D[i-1][j-1]:
                     if I[i-1][j-1] > M[i-1][j-1]:
                         M[i][j] = I[i-1][j-1] + score_d
                         Mp[i][j] = 1
@@ -393,7 +397,7 @@ class sequences:
                     else:
                         M[i][j] = D[i-1][j-1] + score_d
                         Mp[i][j] = -1
-                if M[i][j-1] > D[i][j-1]:
+                if M[i][j-1] >= D[i][j-1]:
                     if I[i][j-1] > M[i][j-1]:
                         I[i][j] = I[i][j-1]
                         Ip[i][j] = 1
@@ -406,7 +410,7 @@ class sequences:
                     else:
                         I[i][j] = D[i][j-1]
                         Ip[i][j] = -1
-                if M[i-1][j] > I[i-1][j] :
+                if M[i-1][j] >= I[i-1][j] :
                     if D[i-1][j] > M[i-1][j] :
                         D[i][j] = D[i-1][j]
                         Dp[i][j] = -1
@@ -570,7 +574,7 @@ class sequences:
         #print score,"\n\n"
         return summ
 
-    def refine(self):
+    def refine(self, times):
         # num, left, right, seqs, size, distance, realindex
         root = self.tree
         self.sortdistance(root)
@@ -578,7 +582,7 @@ class sequences:
             print self.distance[i][0], self.distance[i][5]
         max_score = self.evalue(root[3])
         print max_score
-        for i in range(5):
+        for i in range(times):
             node1 = self.distance[i]
             node2 = [[], [], [], [], -1, -1, []]
             for j in range(len(root[0])):
@@ -606,8 +610,9 @@ class sequences:
                     del root[3][i][index]
             else:
                 index += 1
+        f = open("427tcoffee2.txt", "w")
         for seq in root[3]:
-            print seq
+            print >>f, seq
 
 
     def pairwise2(self, i, j):
@@ -641,7 +646,7 @@ class sequences:
         for i in range(2,len1+1):
             M[0][i] = D[0][i] = I[0][i] = I[0][i-1] + 2
             Mp[0][i] = Dp[0][i] = Ip[0][i] = -1
-        quart = len1/8
+        quart = len1/4
         begin = 0
         end = 0
         for i in range(1,len2+1):
@@ -776,7 +781,7 @@ class sequences:
                     for k2 in range(len(node2[3])):
                         extlist = Ext[node1[0][k1]][node2[0][k2]][0]
                         score_d += self.showExt(extlist, node1[6][k1][j - 1], node2[6][k2][i - 1])
-                if M[i-1][j-1] > D[i-1][j-1]:
+                if M[i-1][j-1] >= D[i-1][j-1]:
                     if I[i-1][j-1] > M[i-1][j-1]:
                         M[i][j] = I[i-1][j-1] + score_d
                         Mp[i][j] = 1
@@ -789,7 +794,7 @@ class sequences:
                     else:
                         M[i][j] = D[i-1][j-1] + score_d
                         Mp[i][j] = -1
-                if M[i][j-1] > D[i][j-1]:
+                if M[i][j-1] >= D[i][j-1]:
                     if I[i][j-1] > M[i][j-1]:
                         I[i][j] = I[i][j-1]
                         Ip[i][j] = 1
@@ -802,7 +807,7 @@ class sequences:
                     else:
                         I[i][j] = D[i][j-1]
                         Ip[i][j] = -1
-                if M[i-1][j] > I[i-1][j] :
+                if M[i-1][j] >= I[i-1][j] :
                     if D[i-1][j] > M[i-1][j] :
                         D[i][j] = D[i-1][j]
                         Dp[i][j] = -1
@@ -889,7 +894,7 @@ class sequences:
         return aligned, realIndex
 # class tree:
 if __name__ == "__main__":
-    fp = open("datatree.txt","r")
+    fp = open("good5.txt","r")
     seq = []
     while (1):
         one = []
@@ -902,7 +907,7 @@ if __name__ == "__main__":
         one.pop()
         seq.append(one)
     fp.close()
-    mul = sequences(seq, 2.0, 3.0, 1.0)
+    mul = sequences(seq[0:100], 2.0, 3.0, 1.0)
     t1 = time.clock()
     print "begin init"
     mul.init_matrix()
@@ -917,7 +922,7 @@ if __name__ == "__main__":
 
     t4 = time.clock()
     print "begin refine"
-    mul.refine()
+    mul.refine(10)
     t5 = time.clock()
 
     print "%f, %f, %f, %f" % (t2-t1, t3-t2, t4-t3, t5-t4)
