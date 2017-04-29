@@ -36,8 +36,10 @@ class sequences:
     # calculate the difference
     def init_matrix(self):
         self.score = []
+        self.score2 = []
         for i in range(0, self.num):
             self.score.append([0.0] * self.num)
+            self.score2.append([0.0] * self.num)
         for i in range(0, self.num):
             # num, left, right, seqs, weight, distance from parent, height,
             # size
@@ -46,6 +48,7 @@ class sequences:
             for j in range(0, i):
                 print i,j
                 self.score[i][j] = self.pairwise2(i, j)
+                self.score2[i][j] = self.score2[j][i] = self.score[i][j]
                 self.score[j][i] = self.score[i][j]
         self.distance = []
 
@@ -329,7 +332,8 @@ class sequences:
         weight_sum = 0.0
         for k1 in range(len(node1[3])):
             for k2 in range(len(node2[3])):
-                weight_sum += node1[4][k1] * node2[4][k2]
+                weight_sum += self.score2[node1[0][k1]][node2[0][k2]] * 0.5 + 0.5
+                #weight_sum += node1[4][k1] * node2[4][k2]
         gap1 = []
         gap2 = []
         for k1 in range(len(node1[3][0])):
@@ -357,9 +361,10 @@ class sequences:
                 for k1 in range(len(node1[3])):
                     for k2 in range(len(node2[3])):
                         #score_d += compare(node1[3][k1][j - 1], node2[3][k2][i - 1]) * node1[4][k1] * node2[4][k2]
+                        #score_d += compare(node1[3][k1][j - 1], node2[3][k2][i - 1]) * (self.score2[node1[0][k1]][node2[0][k2]] * 0.5 + 0.5)
                         score_d += compare(node1[3][k1][j - 1], node2[3][k2][i - 1])
                 score_d /= num_pair
-                if M[i-1][j-1] > D[i-1][j-1]:
+                if M[i-1][j-1] >= D[i-1][j-1]:
                     if I[i-1][j-1] > M[i-1][j-1]:
                         M[i][j] = I[i-1][j-1] + score_d
                         Mp[i][j] = 1
@@ -372,7 +377,7 @@ class sequences:
                     else:
                         M[i][j] = D[i-1][j-1] + score_d
                         Mp[i][j] = -1
-                if M[i][j-1] > D[i][j-1]:
+                if M[i][j-1] >= D[i][j-1]:
                     if I[i][j-1] + pena > M[i][j-1] + penb:
                         I[i][j] = I[i][j-1] + pena
                         Ip[i][j] = 1
@@ -385,7 +390,7 @@ class sequences:
                     else:
                         I[i][j] = D[i][j-1] + penb
                         Ip[i][j] = -1
-                if M[i-1][j] > I[i-1][j] :
+                if M[i-1][j] >= I[i-1][j] :
                     if D[i-1][j] + pena > M[i-1][j] + penb:
                         D[i][j] = D[i-1][j] + pena
                         Dp[i][j] = -1
@@ -398,8 +403,8 @@ class sequences:
                     else:
                         D[i][j] = I[i-1][j] + penb
                         Dp[i][j] = 1
-        if M[len2][len1] > I[len2][len1]:
-            if M[len2][len1] > D[len2][len1]:
+        if M[len2][len1] >= I[len2][len1]:
+            if M[len2][len1] >= D[len2][len1]:
                 key = 0
             else:
                 key = -1
@@ -719,13 +724,18 @@ class sequences:
     def refine(self, times):
         root = self.tree
         self.sortdistance(root)
+        stop = 0
         for i in range(len(self.distance)):
             print self.distance[i][0], self.distance[i][5]
         max_score = self.evalue(root[3])
         print max_score
-        for i in range(times):
+        for i in range(len(self.seqs)):
             node1 = self.distance[i]
             node2 = [[], [], [], [], [], -1, -1, 0]
+            if stop >= 5:
+                break
+            if node1 == root[1] or node1 == root[2]:
+                continue
             for j in range(len(root[0])):
                 if j not in node1[0]:
                     node2[0].append(j)
@@ -738,6 +748,9 @@ class sequences:
                 root[3] = aligned
                 root[0] = node1[0] + node2[0]
                 root[4] = node1[4] + node2[4]
+                stop = 0
+            else:
+                stop += 1
             print max_score
         index = 0
         for k1 in range(len(root[3][0])):
@@ -751,7 +764,7 @@ class sequences:
                     del root[3][i][index]
             else:
                 index += 1
-        f = open("427clustal4.txt", "w")
+        f = open("428clustal4.txt", "w")
         for seq in root[3]:
             print >>f, seq
 
@@ -1056,7 +1069,7 @@ class sequences:
 
 # class tree:
 if __name__ == "__main__":
-    fp = open("good5.txt","r")
+    fp = open("good3.txt","r")
     seq = []
     while (1):
         one = []
@@ -1069,7 +1082,7 @@ if __name__ == "__main__":
         one.pop()
         seq.append(one)
     fp.close()
-    mul = sequences(seq[0:100], 2.0, 3.0, 1.0)
+    mul = sequences(seq[0:50], 2.0, 3.0, 1.0)
     t1 = time.clock()
     mul.init_matrix()
 
@@ -1080,7 +1093,7 @@ if __name__ == "__main__":
     mul.complete()
 
     t4 = time.clock()
-    mul.refine(10)
+    mul.refine(50)
     t5 = time.clock()
 
     print "%f, %f, %f, %f" % (t2-t1, t3-t2, t4-t3, t5-t4)
