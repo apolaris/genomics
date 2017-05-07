@@ -19,7 +19,7 @@ usage: python main.py <read_file_name> <write_file_name> <opengap_penalty> <exte
 
 <seq_num>: The number of sequences you want to align. If you want to align all the sequences, just use 0 as the seq_num.
 
-<option>: Determine which algorithm you want to use. If option is 1, it will run CLUSTAL. If option is 2, it will run TCOFFEE. If option is 3, it will run Quick TCOFFEE.
+option: Determine which algorithm you want to use. If option is 1, it will run CLUSTAL. If option is 2, it will run TCOFFEE. If option is 3, it will run Quick TCOFFEE.
 
 <refine_time>: Times you want to refine. 0 is not refine. Besides, in the Quick TCOFFEE algorithm, we didn't implement the refinement.
 
