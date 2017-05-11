@@ -1,4 +1,4 @@
-import multiple
+from sys import argv
 
 def sc(seq1,seq2):
     s1 = seq1 + []
@@ -6,7 +6,7 @@ def sc(seq1,seq2):
     l = len(s1)
     i = 0
     score = 0
-    
+
     while(i < len(s1)):
         if(s1[i] == '-' and seq2[i] == '-'):
             s1.pop(i)
@@ -20,17 +20,18 @@ def sc(seq1,seq2):
         score += 3
     else:
         score += 2
-        
+
     #print s1,s2
     l = len(s1)
     for i in range(1,l):
         if(s1[i] == s2[i]):
             score-=1
-        
+
         elif(s1[i] == '-'):
             if(s1[i-1] == '-'):
                 score += 2
-            else:                score += 3
+            else:
+                score += 3
         elif(s2[i] == '-'):
             if(s2[i-1] == '-'):
                 score += 2
@@ -52,14 +53,16 @@ def evalue(seqs):
             score[i][j] = sc(seqs[i], seqs[j])
             score[j][i] = sc(seqs[i], seqs[j])
             summ += score[i][j]
-    print score,"\n\n"
+    #print score,"\n\n"
     print summ
     return score, summ
 
 
 
 if __name__ == "__main__":
-    fp = open("a.txt","r")
+    if(len (argv) != 2):
+        print "usage: python evalue.py <filename>"
+    fp = open(argv[1],"r")
     seq = []
     while (1):
         one = []
@@ -70,12 +73,5 @@ if __name__ == "__main__":
             one.append(i)
         one.pop()
         seq.append(one)
-    print seq[0]
     fp.close()
-    evalue(seq[0:6])
-
-    evalue(seq[6:12])
-
-    evalue(seq[12:18])
-
-    evalue(seq[18:24])
+    evalue(seq)
